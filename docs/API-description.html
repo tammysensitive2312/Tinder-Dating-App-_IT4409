@@ -1,0 +1,1778 @@
+<html><head><style><style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        h3 {
+            margin-top: 25px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .section h2 {
+            margin-top: 0;
+        }
+        .section table {
+            margin-top: 10px;
+        }
+    </style></style></head><body><h1 id="thi-t-k-api-cho-tinder">Thiết kế API cho Tinder</h1>
+<h2 id="m-c-l-c">Mục lục</h2>
+<ul>
+<li><a href="#i-các-api-chính-có-thể-có">I. Các API chính có thể có</a><ul>
+<li><a href="#user-side-api">User-side API</a></li>
+<li><a href="#admin-side-api">Admin-side API</a></li>
+</ul>
+</li>
+<li><a href="#ii-mô-tả-chi-tiết-api">II. Mô tả chi tiết API</a><ul>
+<li><a href="#1-authentication--authorization-api">1. Authentication &amp; Authorization API</a></li>
+<li><a href="#2-profile-management-api">2. Profile Management API</a></li>
+<li><a href="#3-swipe--match-api">3. Swipe &amp; Match API</a></li>
+<li><a href="#4-chat-api-websocket">4. Chat API (WebSocket)</a></li>
+<li><a href="#5-notification-api-sse">5. Notification API (SSE)</a></li>
+<li><a href="#6-location--discovery-api">6. Location &amp; Discovery API</a></li>
+<li><a href="#7-subscription--payment-api">7. Subscription &amp; Payment API</a></li>
+<li><a href="#8-analytics-api">8. Analytics API</a></li>
+<li><a href="#9-admin-api">9. Admin API</a></li>
+<li><a href="#10-third-party-integration-api">10. Third-Party Integration API</a></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="i-c-c-api-ch-nh-c-th-c-">I. Các API chính có thể có:</h2>
+<h3 id="user-side-api">User-side API</h3>
+<ol>
+<li>Authentication &amp; Authorization API</li>
+<li>Đăng ký/ Tạo tài khoản</li>
+<li>POST /auth/signup: Tạo tài khoản bằng email/SĐT/mạng xã hội</li>
+<li>POST /auth/oauth/{provide}: Đăng nhập bằng bên thứ 3 tin cậy</li>
+<li>Xác thực</li>
+<li>POST /auth/login: Đăng nhập bằng email/mật khẩu</li>
+<li>POST /auth/refresh-token: làm mới token (với jwt)</li>
+<li>POST /auth/logout: Đăng xuất</li>
+<li>Quên mật khẩu</li>
+<li>POST /auth/reset-password: Yêu cầu đặt lại mật khẩu</li>
+<li>PUT /auth/reset-password: Xác nhận mã OTP và đổi mật khẩu</li>
+<li>Profile Management API</li>
+<li>Thông tin cá nhân</li>
+<li>GET /profile/me: Lấy thông tin về profile của người dùng</li>
+<li>PUT /profile/me: Cập nhật thông tin (tên, mô tả, giới tính, etc.)</li>
+<li>Hình ảnh</li>
+<li>POST /profile/me/photos: Tải lên ảnh đại diện</li>
+<li>DELETE /profile/me/photos/{photoId}: xóa ảnh</li>
+<li>Thiết lập tìm kiếm</li>
+<li>PUT /profile/preferences: Cập nhật tuổi/khoảng cách/giới tính mục tiêu.</li>
+<li>Swipe &amp; Match API</li>
+<li>Lấy danh sách đề xuất</li>
+<li>GET /recommendations: Trả về các profile để swipe</li>
+<li>Thao tác swipe</li>
+<li>POST /swipe/{userId}/like: Swipe phải (thích)</li>
+<li>POST /swipe/{userId}/dislike: Swipe trái (bỏ qua)</li>
+<li>Quản lý match</li>
+<li>GET /matches: Danh sách các match </li>
+<li>DELETE /matches/{matchId}: hủy match</li>
+<li>Chat API</li>
+<li>Kết nối WebSocket</li>
+<li>wss://api.datingapp.com/chat/ws:<ul>
+<li>CLient kết nối qua WebSocket</li>
+<li>Server quản lý các kết nối dựa trên userId hoặc matchId</li>
+</ul>
+</li>
+<li>Notification API</li>
+<li>Kết nối SSE</li>
+<li>GET /sse/notifications: CLient mở kết nối SSE và nhận thông báo real-time</li>
+<li>Location &amp; Discovery API</li>
+<li>Cập nhật vị trí</li>
+<li>POST /location: Gửi tọa độ GPS hiện tại</li>
+<li>Tìm kiếm theo khu vực</li>
+<li>GET /discovery?radis=...: Lọc profile theo khoảng cách</li>
+<li>Subscription &amp; Payment API&#39;</li>
+<li>Gói Premium</li>
+<li>GET /subscriptions/plans: Danh sách gói (Tinder Plus/Gold).</li>
+<li>POST /subscriptions: Mua gói premium.</li>
+<li>In-app purchases</li>
+<li>POST /purchases/boosts: Mua Boost.</li>
+<li>POST /purchases/super-likes: Mua Super Likes.</li>
+</ol>
+<h3 id="admin-side-api">Admin-side API</h3>
+<ol>
+<li>Analytics API</li>
+<li>Thống kê người dùng</li>
+<li>GET /analytics/swipes: Số lượt swipe theo ngày.</li>
+<li>GET /analytics/matches: Tỷ lệ match.</li>
+<li>Dữ liệu kinh doanh </li>
+<li>GET /analytics/revenue: Doanh thu từ gói premium.</li>
+<li>Admin API</li>
+<li>Quản lý người dùng</li>
+<li>DELETE /admin/users/{userId}: Ban tài khoản.</li>
+<li>GET /admin/reports: Danh sách báo cáo</li>
+<li>Hệ thống</li>
+<li>GET /admin/health: Kiếm tra trạng thái server</li>
+<li>Third-Party Integration API</li>
+<li>Kết nối mạng xã hội</li>
+<li>GET /integrations/instagram: Hiển thị ảnh Instagram.</li>
+<li>GET /integrations/spotify: Hiển thị bài hát yêu thích.</li>
+</ol>
+<hr>
+<h2 id="ii-m-t-chi-ti-t-api">II. Mô tả chi tiết API</h2>
+<h3 id="1-authentication-authorization-api">1. Authentication &amp; Authorization API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đăng ký tài khoản</td>
+<td>POST</td>
+<td><code>/auth/signup</code></td>
+<td><code>{ email: string, password: string, name: string }</code></td>
+<td><code>{ id: string, token: string }</code></td>
+</tr>
+<tr>
+<td>Đăng nhập bằng OAuth</td>
+<td>POST</td>
+<td><code>/auth/oauth/{provider}</code></td>
+<td><code>{ access_token: string }</code></td>
+<td><code>{ id: string, token: string }</code></td>
+</tr>
+<tr>
+<td>Đăng nhập bằng email</td>
+<td>POST</td>
+<td><code>/auth/login</code></td>
+<td><code>{ email: string, password: string }</code></td>
+<td><code>{ token: string, refresh_token: string }</code></td>
+</tr>
+<tr>
+<td>Làm mới token</td>
+<td>POST</td>
+<td><code>/auth/refresh-token</code></td>
+<td>Header: <code>refresh_token: string</code></td>
+<td><code>{ new_token: string }</code></td>
+</tr>
+<tr>
+<td>Yêu cầu đặt lại mật khẩu</td>
+<td>POST</td>
+<td><code>/auth/reset-password</code></td>
+<td><code>{ email: string }</code></td>
+<td><code>{ otp_expiry: string }</code></td>
+</tr>
+<tr>
+<td>Xác nhận đặt lại mật khẩu</td>
+<td>PUT</td>
+<td><code>/auth/reset-password</code></td>
+<td><code>{ otp: string, new_password: string }</code></td>
+<td><code>{ status: &quot;success&quot; }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-authentication-authorization-api">Chi tiết Input và Output của Authentication &amp; Authorization API</h3>
+<h4 id="1-ng-k-t-i-kho-n-post-auth-signup-">1. Đăng ký tài khoản (<code>POST /auth/signup</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>email</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Email của người dùng, dùng để đăng nhập và liên lạc.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>password</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Mật khẩu của người dùng, tối thiểu 8 ký tự.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Tên hiển thị của người dùng trên ứng dụng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>ID duy nhất của người dùng trong hệ thống.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>JWT token dùng để xác thực các request tiếp theo.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-ng-nh-p-b-ng-oauth-post-auth-oauth-provider-">2. Đăng nhập bằng OAuth (<code>POST /auth/oauth/{provider}</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>access_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Access token từ nhà cung cấp OAuth (Google, Facebook, Apple).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>ID duy nhất của người dùng trong hệ thống.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>JWT token dùng để xác thực các request tiếp theo.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="3-ng-nh-p-b-ng-email-post-auth-login-">3. Đăng nhập bằng email (<code>POST /auth/login</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>email</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Email đã đăng ký của người dùng.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>password</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Mật khẩu của người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>JWT token dùng để xác thực các request tiếp theo.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>refresh_token</code></td>
+<td><code>string</code></td>
+<td>Refresh token dùng để lấy lại JWT token khi hết hạn.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="4-l-m-m-i-token-post-auth-refresh-token-">4. Làm mới token (<code>POST /auth/refresh-token</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>refresh_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Refresh token được cấp khi đăng nhập thành công.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>new_token</code></td>
+<td><code>string</code></td>
+<td>JWT token mới dùng để xác thực các request tiếp theo.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="5-y-u-c-u-t-l-i-m-t-kh-u-post-auth-reset-password-">5. Yêu cầu đặt lại mật khẩu (<code>POST /auth/reset-password</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>email</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Email đã đăng ký của người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>otp_expiry</code></td>
+<td><code>string</code></td>
+<td>Thời gian hết hạn của mã OTP (định dạng ISO 8601).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="6-x-c-nh-n-t-l-i-m-t-kh-u-put-auth-reset-password-">6. Xác nhận đặt lại mật khẩu (<code>PUT /auth/reset-password</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>otp</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Mã OTP được gửi đến email của người dùng.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>new_password</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Mật khẩu mới của người dùng, tối thiểu 8 ký tự.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>status</code></td>
+<td><code>string</code></td>
+<td>Trạng thái của request, giá trị là <code>&quot;success&quot;</code> nếu thành công.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="2-profile-management-api">2. Profile Management API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lấy thông tin profile</td>
+<td>GET</td>
+<td><code>/profile/me</code></td>
+<td>Header: <code>token: string</code></td>
+<td><code>{ name: string, bio: string, photos: [string], preferences: object }</code></td>
+</tr>
+<tr>
+<td>Cập nhật thông tin profile</td>
+<td>PUT</td>
+<td><code>/profile/me</code></td>
+<td><code>{ bio: string, gender: string, job: string }</code></td>
+<td><code>{ updated_profile: object }</code></td>
+</tr>
+<tr>
+<td>Tải lên ảnh đại diện</td>
+<td>POST</td>
+<td><code>/profile/me/photos</code></td>
+<td>FormData: <code>image: file</code></td>
+<td><code>{ photo_id: string, url: string }</code></td>
+</tr>
+<tr>
+<td>Cập nhật thiết lập tìm kiếm</td>
+<td>PUT</td>
+<td><code>/profile/preferences</code></td>
+<td><code>{ max_age: number, max_distance: number }</code></td>
+<td><code>{ updated_prefs: object }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-profile-management-api">Chi tiết Input và Output của Profile Management API</h3>
+<h4 id="1-l-y-th-ng-tin-profile-get-profile-me-">1. Lấy thông tin profile (<code>GET /profile/me</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>JWT token dùng để xác thực người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Tên hiển thị của người dùng.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>bio</code></td>
+<td><code>string</code></td>
+<td>Mô tả ngắn về bản thân.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>photos</code></td>
+<td><code>[string]</code></td>
+<td>Danh sách URL ảnh đại diện.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>preferences</code></td>
+<td><code>object</code></td>
+<td>Thiết lập tìm kiếm (tuổi, khoảng cách, giới tính).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-c-p-nh-t-th-ng-tin-profile-put-profile-me-">2. Cập nhật thông tin profile (<code>PUT /profile/me</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>bio</code></td>
+<td><code>string</code></td>
+<td>Không</td>
+<td>Mô tả ngắn về bản thân.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>gender</code></td>
+<td><code>string</code></td>
+<td>Không</td>
+<td>Giới tính (ví dụ: &quot;male&quot;, &quot;female&quot;, &quot;other&quot;).</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>job</code></td>
+<td><code>string</code></td>
+<td>Không</td>
+<td>Nghề nghiệp của người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>updated_profile</code></td>
+<td><code>object</code></td>
+<td>Thông tin profile đã được cập nhật.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="3-t-i-l-n-nh-i-di-n-post-profile-me-photos-">3. Tải lên ảnh đại diện (<code>POST /profile/me/photos</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>image</code></td>
+<td><code>file</code></td>
+<td>Có</td>
+<td>File ảnh đại diện (định dạng JPEG/PNG).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>photo_id</code></td>
+<td><code>string</code></td>
+<td>ID của ảnh đã tải lên.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>url</code></td>
+<td><code>string</code></td>
+<td>URL của ảnh đã tải lên.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="4-c-p-nh-t-thi-t-l-p-t-m-ki-m-put-profile-preferences-">4. Cập nhật thiết lập tìm kiếm (<code>PUT /profile/preferences</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>max_age</code></td>
+<td><code>number</code></td>
+<td>Không</td>
+<td>Tuổi tối đa của người dùng muốn tìm kiếm.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>max_distance</code></td>
+<td><code>number</code></td>
+<td>Không</td>
+<td>Khoảng cách tối đa (đơn vị: km).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>updated_prefs</code></td>
+<td><code>object</code></td>
+<td>Thiết lập tìm kiếm đã được cập nhật.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="swipe-match-api">Swipe &amp; Match API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lấy danh sách đề xuất</td>
+<td>GET</td>
+<td><code>/recommendations</code></td>
+<td>Header: <code>token: string</code></td>
+<td><code>{ users: [{ id: string, name: string, photos: [string] }] }</code></td>
+</tr>
+<tr>
+<td>Swipe phải (thích)</td>
+<td>POST</td>
+<td><code>/swipe/{userId}/like</code></td>
+<td>Header: <code>token: string</code></td>
+<td><code>{ is_match: boolean, match_id: string (nếu có) }</code></td>
+</tr>
+<tr>
+<td>Lấy danh sách match</td>
+<td>GET</td>
+<td><code>/matches</code></td>
+<td>Header: <code>token: string</code></td>
+<td><code>{ matches: [{ match_id: string, user: object }] }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-swipe-match-api">Chi tiết Input và Output của Swipe &amp; Match API</h3>
+<h4 id="1-l-y-danh-s-ch-xu-t-get-recommendations-">1. Lấy danh sách đề xuất (<code>GET /recommendations</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>JWT token dùng để xác thực người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>users</code></td>
+<td><code>[object]</code></td>
+<td>Danh sách người dùng đề xuất.</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>ID của người dùng.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Tên của người dùng.</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td><code>photos</code></td>
+<td><code>[string]</code></td>
+<td>Danh sách URL ảnh đại diện.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-swipe-ph-i-th-ch-post-swipe-userid-like-">2. Swipe phải (thích) (<code>POST /swipe/{userId}/like</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>JWT token dùng để xác thực người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>is_match</code></td>
+<td><code>boolean</code></td>
+<td><code>true</code> nếu cả hai người dùng đều thích nhau, ngược lại là <code>false</code>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>match_id</code></td>
+<td><code>string</code></td>
+<td>ID của match (nếu có).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="3-l-y-danh-s-ch-match-get-matches-">3. Lấy danh sách match (<code>GET /matches</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>JWT token dùng để xác thực người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>matches</code></td>
+<td><code>[object]</code></td>
+<td>Danh sách các match.</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td><code>match_id</code></td>
+<td><code>string</code></td>
+<td>ID của match.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><code>user</code></td>
+<td><code>object</code></td>
+<td>Thông tin người dùng đã match.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="chat-api-websocket-">Chat API (WebSocket)</h3>
+<table>
+<thead>
+<tr>
+<th><strong>Event</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gửi tin nhắn</td>
+<td><code>{ event: &quot;send_message&quot;, data: { match_id: string, content: string } }</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td>Nhận tin nhắn</td>
+<td>-</td>
+<td><code>{ event: &quot;new_message&quot;, data: { sender_id: string, content: string, timestamp: string } }</code></td>
+</tr>
+<tr>
+<td>Typing indicator</td>
+<td><code>{ event: &quot;typing&quot;, data: { match_id: string, is_typing: boolean } }</code></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-chat-api-websocket-">Chi tiết Input và Output của Chat API (WebSocket)</h3>
+<h4 id="1-g-i-tin-nh-n">1. Gửi tin nhắn</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>match_id</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>ID của match.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>content</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Nội dung tin nhắn.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-nh-n-tin-nh-n">2. Nhận tin nhắn</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>sender_id</code></td>
+<td><code>string</code></td>
+<td>ID của người gửi.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>content</code></td>
+<td><code>string</code></td>
+<td>Nội dung tin nhắn.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>timestamp</code></td>
+<td><code>string</code></td>
+<td>Thời gian gửi tin nhắn (định dạng ISO 8601).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="3-typing-indicator">3. Typing indicator</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>match_id</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>ID của match.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>is_typing</code></td>
+<td><code>boolean</code></td>
+<td>Có</td>
+<td><code>true</code> nếu đang nhập tin nhắn, <code>false</code> nếu dừng nhập</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="notification-api-sse-">Notification API (SSE)</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kết nối SSE</td>
+<td>GET</td>
+<td><code>/sse/notifications</code></td>
+<td>Header: <code>token: string</code></td>
+<td>Event Stream: <code>{ type: &quot;new_match&quot;, data: { user_id: string, name: string } }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-notification-api-sse-">Chi tiết Input và Output của Notification API (SSE)</h3>
+<h4 id="1-k-t-n-i-sse-get-sse-notifications-">1. Kết nối SSE (<code>GET /sse/notifications</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>JWT token dùng để xác thực người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>type</code></td>
+<td><code>string</code></td>
+<td>Loại thông báo (ví dụ: &quot;new_match&quot;).</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>data</code></td>
+<td><code>object</code></td>
+<td>Dữ liệu thông báo (ví dụ: <code>{ user_id: string, name: string }</code>).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="location-discovery-api">Location &amp; Discovery API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cập nhật vị trí</td>
+<td>POST</td>
+<td><code>/location</code></td>
+<td><code>{ lat: number, lng: number }</code></td>
+<td><code>{ status: &quot;updated&quot; }</code></td>
+</tr>
+<tr>
+<td>Tìm kiếm theo khu vực</td>
+<td>GET</td>
+<td><code>/discovery</code></td>
+<td>Query: <code>radius: number</code></td>
+<td><code>{ users: [{ id: string, name: string, photos: [string] }] }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-location-discovery-api">Chi tiết Input và Output của Location &amp; Discovery API</h3>
+<h4 id="1-c-p-nh-t-v-tr-post-location-">1. Cập nhật vị trí (<code>POST /location</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>lat</code></td>
+<td><code>number</code></td>
+<td>Có</td>
+<td>Vĩ độ của người dùng.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>lng</code></td>
+<td><code>number</code></td>
+<td>Có</td>
+<td>Kinh độ của người dùng.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>status</code></td>
+<td><code>string</code></td>
+<td>Trạng thái cập nhật (ví dụ: &quot;updated&quot;).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-t-m-ki-m-theo-khu-v-c-get-discovery-">2. Tìm kiếm theo khu vực (<code>GET /discovery</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>radius</code></td>
+<td><code>number</code></td>
+<td>Có</td>
+<td>Bán kính tìm kiếm (đơn vị: km).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>users</code></td>
+<td><code>[object]</code></td>
+<td>Danh sách người dùng trong khu vực.</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>ID của người dùng.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Tên của người dùng.</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td><code>photos</code></td>
+<td><code>[string]</code></td>
+<td>Danh sách URL ảnh đại diện.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="subscription-payment-api">Subscription &amp; Payment API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mua gói premium</td>
+<td>POST</td>
+<td><code>/subscriptions</code></td>
+<td><code>{ plan_id: string, payment_token: string }</code></td>
+<td><code>{ expiry_date: string }</code></td>
+</tr>
+<tr>
+<td>Mua Boost</td>
+<td>POST</td>
+<td><code>/purchases/boosts</code></td>
+<td><code>{ quantity: number }</code></td>
+<td><code>{ boost_count: number }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-subscription-payment-api">Chi tiết Input và Output của Subscription &amp; Payment API</h3>
+<h4 id="1-mua-g-i-premium-post-subscriptions-">1. Mua gói premium (<code>POST /subscriptions</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>plan_id</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>ID của gói premium.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>payment_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Token thanh toán từ hệ thống thanh toán (ví dụ: Stripe).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>expiry_date</code></td>
+<td><code>string</code></td>
+<td>Ngày hết hạn của gói premium (định dạng ISO 8601).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-mua-boost-post-purchases-boosts-">2. Mua Boost (<code>POST /purchases/boosts</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>quantity</code></td>
+<td><code>number</code></td>
+<td>Có</td>
+<td>Số lượng Boost muốn mua.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>boost_count</code></td>
+<td><code>number</code></td>
+<td>Tổng số Boost hiện có của người dùng.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="analytics-api">Analytics API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thống kê swipe</td>
+<td>GET</td>
+<td><code>/analytics/swipes</code></td>
+<td>Header: <code>admin_token: string</code></td>
+<td><code>{ date: string, total_swipes: number }</code></td>
+</tr>
+<tr>
+<td>Thống kê doanh thu</td>
+<td>GET</td>
+<td><code>/analytics/revenue</code></td>
+<td>Header: <code>admin_token: string</code></td>
+<td><code>{ revenue_by_plan: [{ plan_id: string, revenue: number }] }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-analytics-api">Chi tiết Input và Output của Analytics API</h3>
+<h4 id="1-th-ng-k-swipe-get-analytics-swipes-">1. Thống kê swipe (<code>GET /analytics/swipes</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>admin_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Token quản trị viên để xác thực.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>date</code></td>
+<td><code>string</code></td>
+<td>Ngày thống kê (định dạng ISO 8601).</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>total_swipes</code></td>
+<td><code>number</code></td>
+<td>Tổng số lượt swipe trong ngày.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-th-ng-k-doanh-thu-get-analytics-revenue-">2. Thống kê doanh thu (<code>GET /analytics/revenue</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>admin_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Token quản trị viên để xác thực.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>revenue_by_plan</code></td>
+<td><code>[object]</code></td>
+<td>Danh sách doanh thu theo từng gói.</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td><code>plan_id</code></td>
+<td><code>string</code></td>
+<td>ID của gói.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><code>revenue</code></td>
+<td><code>number</code></td>
+<td>Doanh thu của gói.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="admin-api">Admin API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ban tài khoản</td>
+<td>DELETE</td>
+<td><code>/admin/users/{userId}</code></td>
+<td>Header: <code>admin_token: string</code></td>
+<td><code>{ banned_user_id: string }</code></td>
+</tr>
+<tr>
+<td>Lấy danh sách báo cáo</td>
+<td>GET</td>
+<td><code>/admin/reports</code></td>
+<td>Header: <code>admin_token: string</code></td>
+<td><code>{ reports: [{ report_id: string, reason: string }] }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-admin-api">Chi tiết Input và Output của Admin API</h3>
+<h4 id="1-ban-t-i-kho-n-delete-admin-users-userid-">1. Ban tài khoản (<code>DELETE /admin/users/{userId}</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>admin_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Token quản trị viên để xác thực.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>banned_user_id</code></td>
+<td><code>string</code></td>
+<td>ID của người dùng đã bị ban.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-l-y-danh-s-ch-b-o-c-o-get-admin-reports-">2. Lấy danh sách báo cáo (<code>GET /admin/reports</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>admin_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Token quản trị viên để xác thực.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>reports</code></td>
+<td><code>[object]</code></td>
+<td>Danh sách các báo cáo.</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td><code>report_id</code></td>
+<td><code>string</code></td>
+<td>ID của báo cáo.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><code>reason</code></td>
+<td><code>string</code></td>
+<td>Lý do báo cáo.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="third-party-integration-api">Third-Party Integration API</h3>
+<table>
+<thead>
+<tr>
+<th><strong>API</strong></th>
+<th><strong>Method</strong></th>
+<th><strong>Endpoint</strong></th>
+<th><strong>Input</strong></th>
+<th><strong>Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lấy ảnh Instagram</td>
+<td>GET</td>
+<td><code>/integrations/instagram</code></td>
+<td>Header: <code>instagram_token: string</code></td>
+<td><code>{ photos: [string] }</code></td>
+</tr>
+<tr>
+<td>Lấy bài hát Spotify</td>
+<td>GET</td>
+<td><code>/integrations/spotify</code></td>
+<td>Header: <code>spotify_token: string</code></td>
+<td><code>{ top_tracks: [{ name: string, artist: string }] }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chi-ti-t-input-v-output-c-a-third-party-integration-api">Chi tiết Input và Output của Third-Party Integration API</h3>
+<h4 id="1-l-y-nh-instagram-get-integrations-instagram-">1. Lấy ảnh Instagram (<code>GET /integrations/instagram</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>instagram_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Token Instagram để xác thực.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>photos</code></td>
+<td><code>[string]</code></td>
+<td>Danh sách URL ảnh từ Instagram.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="2-l-y-b-i-h-t-spotify-get-integrations-spotify-">2. Lấy bài hát Spotify (<code>GET /integrations/spotify</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>spotify_token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Token Spotify để xác thực.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>top_tracks</code></td>
+<td><code>[object]</code></td>
+<td>Danh sách bài hát yêu thích.</td>
+</tr>
+<tr>
+<td>1.1</td>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Tên bài hát.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><code>artist</code></td>
+<td><code>string</code></td>
+<td>Tên nghệ sĩ.</td>
+</tr>
+</tbody>
+</table>
+</body></html>

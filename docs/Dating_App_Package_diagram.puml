@@ -1,0 +1,17 @@
+@startuml
+component DatingApp {
+    component Application_Layer {
+    }
+    component Data_Access_Layer {
+    }
+    component Domain_Layer {
+        component User {
+        }
+        component Match {
+        }
+        component Message {
+        }
+    }
+}
+
+@enduml
