@@ -1,17 +1,289 @@
-@startuml
+@startuml overview architecture
 component DatingApp {
     component Application_Layer {
+        [Controller]
+        [DTOs]
     }
+
+    component Use_Case_Layer {
+        [Services]
+    }
+
     component Data_Access_Layer {
+        [Repositories]
+        [UnitOfWork]
+        [Database Context]
     }
+
     component Domain_Layer {
-        component User {
+        [Entities]
+        [Repository Interfaces]
+    }
+
+    Application_Layer --> Use_Case_Layer
+    Use_Case_Layer --> Data_Access_Layer
+    Domain_Layer <.. Data_Access_Layer : Implements
+}
+@enduml
+
+@startuml domain_layer
+component Domain_Layer {
+    component Entities {
+        class User {
+            +int Id
+            +string email
+            +string password
+            +boolean isActive
         }
-        component Match {
+        class Profile {
+            +int Id
+            +int userID
+            +string username
+            +string bio
+            +enum gender
+            +Date birthdate
+            +string location
+            }
+        class Photo {
+            +int Id
+            +string url
+            +int order
+
+            +int profileId
         }
-        component Message {
+
+        class Swipe {
+            +int Id
+            +enum action
+            +Date date
+
+            +int swiperId
+            +int swipedId
+            +Date createdAt
+        }
+        class Match {
+            +int Id
+            +Date createdAt
+            +boolean isActive
+        }
+        class Message {
+            +int Id
+            +string content
+            +Date createdAt
+            +boolean isRead
+
+            +int senderId
+            +int matchId
+        }
+        class Notification {
+            +int Id
+            +string content
+            +Date createdAt
+            +boolean isRead
+            +enum type
+
+            +int userId
+        }
+        class Preference {
+            +int Id
+            +int profileId
+            +int minAge
+            +int maxAge
+            +int maxDistance
+            +enum gender_preference
+        }
+        class Subcription {
+            +int Id
+            +Date startDate
+            +Date endDate
+            +enum plan
+            +boolean isActive
+
+            +int userId
+        }
+        class Report {
+            +int Id
+            +string reason
+            +Date createdAt
+
+            +int reporterId
+            +int reportedId
+        }
+        class Block {
+            +int Id
+            +Date createdAt
+
+            +int blockerId
+            +int blockedId
         }
     }
+    package Repository_Interfaces {
+        interface IRepository<T> {
+            + {abstract} GetById(id: int): T
+            + {abstract} GetAll(): IEnumerable<T>
+            + {abstract} Add(entity: T): void
+            + {abstract} Update(entity: T): void
+            + {abstract} Delete(entity: T): void
+        }
+
+        interface IQueryStrategy<T> {
+            + {abstract} Apply(query: IQueryable<T>): IQueryable<T>
+        }
+
+        abstract class BaseRepository<T> {
+            # _context: DbContext
+            # _strategies: List<IQueryStrategy<T>>
+            + AddStrategy(strategy: IQueryStrategy<T>): void
+            + RemoveStrategy(strategyType: Type): void
+            + {template} Find(): IEnumerable<T>
+            # {abstract} GetBaseQuery(): IQueryable<T>
+        }
+
+        interface IUserRepository extends BaseRepository<User> {
+            + FindByEmail(email: string): User
+            + FindActiveUsers(): IEnumerable<User>
+            + GetWithProfile(userId: int): User
+        }
+
+        interface IProfileRepository extends BaseRepository<Profile> {
+            + UpdateBio(userId: int, newBio: string): void
+            + GetWithPhotos(profileId: int): Profile
+        }
+
+        interface ISwipeRepository extends BaseRepository<Swipe> {
+            + GetRecentSwipes(userId: int, days: int): IEnumerable<Swipe>
+            + GetMutualSwipes(user1Id: int, user2Id: int): IEnumerable<Swipe>
+        }
+
+        class GenderFilterStrategy implements IQueryStrategy<User> {
+            - _gender: GenderType
+            + Apply(query: IQueryable<User>): IQueryable<User>
+        }
+
+        class LocationFilterStrategy implements IQueryStrategy<User> {
+            - _radius: int
+            - _coordinates: GeoPoint
+            + Apply(query: IQueryable<User>): IQueryable<User>
+        }
+    }
+
+    Repository_Interfaces ..> Entities : Dependency
+    BaseRepository ..|> IRepository
+}
+@enduml
+
+@startuml data_access_layer
+component Data_Access_Layer {
+    component Database_Context {
+        class SqlAlchemyDbContext {
+            + Session: scoped_session
+            + engine: Engine
+            + Model: declarative_base
+            + init_db()
+            + drop_all()
+        }
+    }
+
+    component Repositories {
+        class UserRepository {
+            + AddFilterStrategy()
+            + FindActiveUsers()
+            + GetWithProfile()
+        }
+
+        class ProfileRepository {
+            + UpdateBio()
+            + GetWithPhotos()
+        }
+
+        class SwipeRepository {
+            + GetRecentSwipes()
+            + GetMutualSwipes()
+        }
+
+        class CustomQueryBuilder {
+            + ApplyStrategies()
+            + Build()
+        }
+    }
+
+    component UnitOfWork {
+        class UnitOfWork {
+            + __enter__()
+            + __exit__()
+            + commit()
+            + rollback()
+            + users: IUserRepository
+            + profiles: IProfileRepository
+            + swipes: ISwipeRepository
+        }
+    }
+
+    component Strategies {
+        class GenderFilterStrategy
+        class LocationFilterStrategy
+        class ActivityFilterStrategy
+    }
+
+    Database_Context --> Repositories : Provides session
+    Repositories --> Strategies : Uses
+    Repositories --> Database_Context : Depends on
+    UnitOfWork --> Repositories : Manages
+    UnitOfWork --> Database_Context : Uses session
 }
 
+Data_Access_Layer --> Domain_Layer : Implements interfaces\nDepends on entities
+@enduml
+
+@startuml Use_Case_Business_Layer
+component UseCaseBusiness_Layer {
+    component UserManagement {
+        class RegisterUserUseCase {
+            +execute(data: UserRegistrationDTO): UserResponseDTO
+        }
+        class UpdateProfileUseCase {
+            +execute(user_id: int, data: ProfileUpdateDTO): ProfileDTO
+        }
+    }
+
+    component Matching {
+        class SwipeUserUseCase {
+            +execute(swiper_id: int, swiped_id: int, action: SwipeAction): MatchResultDTO
+        }
+        class GenerateRecommendationsUseCase {
+            +execute(user_id: int): List[UserRecommendationDTO]
+        }
+    }
+
+    component Communication {
+        class SendMessageUseCase {
+            +execute(sender_id: int, match_id: int, content: str): MessageDTO
+        }
+    }
+
+    component Security {
+        class BlockUserUseCase {
+            +execute(blocker_id: int, blocked_id: int): BlockConfirmationDTO
+        }
+    }
+
+    component Payment {
+        class ProcessSubscriptionUseCase {
+            +execute(user_id: int, plan: SubscriptionPlan): SubscriptionDTO
+        }
+    }
+
+    component mapper {
+        class BaseMapper {
+            +toDTO(<T>): <D>
+            +toEntity(<D>): <T>
+        }
+    }
+
+    UserManagement --> Data_Access_Layer : Uses Repositories
+    Matching --> Data_Access_Layer : Uses Repositories
+    Communication --> Data_Access_Layer : Uses Repositories
+    Security --> Data_Access_Layer : Uses Repositories
+    Payment --> Data_Access_Layer : Uses Repositories
+}
 @enduml
