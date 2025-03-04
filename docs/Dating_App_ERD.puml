@@ -1,0 +1,103 @@
+@startuml domain_layer
+    component Entities {
+        class User {
+            +int Id
+            +string email
+            +string password
+            +boolean isActive
+        }
+        class Profile {
+            +int Id
+            +int userID
+            +string username
+            +string bio
+            +enum gender
+            +Date birthdate
+            +string location
+            }
+        class Photo {
+            +int Id
+            +string url
+            +int order
+
+            +int profileId
+        }
+
+        class Swipe {
+            +int Id
+            +enum action
+            +Date date
+
+            +int swiperId
+            +int swipedId
+            +Date createdAt
+        }
+        class Match {
+            +int Id
+            +Date createdAt
+            +boolean isActive
+        }
+        class Message {
+            +int Id
+            +string content
+            +Date createdAt
+            +boolean isRead
+
+            +int senderId
+            +int matchId
+        }
+        class Notification {
+            +int Id
+            +string content
+            +Date createdAt
+            +boolean isRead
+            +enum type
+
+            +int userId
+        }
+        class Preference {
+            +int Id
+            +int profileId
+            +int minAge
+            +int maxAge
+            +int maxDistance
+            +enum gender_preference
+        }
+        class Subcription {
+            +int Id
+            +Date startDate
+            +Date endDate
+            +enum plan
+            +boolean isActive
+
+            +int userId
+        }
+        class Report {
+            +int Id
+            +string reason
+            +Date createdAt
+
+            +int reporterId
+            +int reportedId
+        }
+        class Block {
+            +int Id
+            +Date createdAt
+
+            +int blockerId
+            +int blockedId
+        }
+    }
+
+    User "1" ..> "1" Profile
+    Profile "1" ..> "0..n" Photo
+    User "1" ..> "0..n" Swipe
+    User "0..n" ..> "0..n" Match
+    User "1" ..> "0..n" Message
+    User "1" ..> "0..n" Notification
+    Profile "1" ..> "1" Preference
+    User "1" ..> "0..n" Subcription
+'    User "0..n" ..> "0..n" Report
+'    User "0..n" ..> "0..n" Block
+    User "0..n" ..> "0..n" User
+@enduml
