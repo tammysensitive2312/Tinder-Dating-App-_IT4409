@@ -9,6 +9,10 @@ component DatingApp {
         [Services]
     }
 
+    component Cache_Layer {
+        [Cache]
+    }
+
     component Data_Access_Layer {
         [Repositories]
         [UnitOfWork]
@@ -22,7 +26,8 @@ component DatingApp {
 
     Application_Layer --> Use_Case_Layer
     Use_Case_Layer --> Data_Access_Layer
-    Domain_Layer <.. Data_Access_Layer : Implements
+    Use_Case_Layer --> Cache_Layer
+    Data_Access_Layer ..> Domain_Layer : Implements
 }
 @enduml
 
@@ -135,7 +140,7 @@ component Domain_Layer {
             # _strategies: List<IQueryStrategy<T>>
             + AddStrategy(strategy: IQueryStrategy<T>): void
             + RemoveStrategy(strategyType: Type): void
-            + {template} Find(): IEnumerable<T>
+'            + {template} Find(): IEnumerable<T>
             # {abstract} GetBaseQuery(): IQueryable<T>
         }
 
