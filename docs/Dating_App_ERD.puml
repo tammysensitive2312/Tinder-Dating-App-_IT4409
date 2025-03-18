@@ -1,4 +1,4 @@
-@startuml
+@startuml database_design
 
 object User {
   Id: int <<PK>>

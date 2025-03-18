@@ -6,11 +6,6 @@ component DatingApp {
     }
 
     component Use_Case_Layer {
-
-
-
-
-
          [Services]
     }
 
@@ -245,7 +240,7 @@ component Data_Access_Layer {
 Data_Access_Layer --> Domain_Layer : Implements interfaces\nDepends on entities
 @enduml
 
-@startuml
+@startuml use_case_layer
 package "Use Case Layer" {
 
     abstract class BaseService {
