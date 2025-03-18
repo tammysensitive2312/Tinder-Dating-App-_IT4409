@@ -299,11 +299,12 @@ component Cache_Layer {
 
 ' Relationships
 Controllers --> BaseService
-Controllers --> MatchService
 Controllers --> Mappers
 
 UserService --> UnitOfWork
 MatchService --> UnitOfWork
+ReportAndBlockService --> UnitOfWork
+SwipeService --> UnitOfWork
 MatchService --> Cache_Layer
 
 Mappers --> Entities
