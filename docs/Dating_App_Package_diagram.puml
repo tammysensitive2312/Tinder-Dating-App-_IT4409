@@ -6,7 +6,12 @@ component DatingApp {
     }
 
     component Use_Case_Layer {
-        [Services]
+
+
+
+
+
+         [Services]
     }
 
     component Cache_Layer {
@@ -240,55 +245,85 @@ component Data_Access_Layer {
 Data_Access_Layer --> Domain_Layer : Implements interfaces\nDepends on entities
 @enduml
 
-@startuml Use_Case_Business_Layer
-component UseCaseBusiness_Layer {
-    component UserManagement {
-        class RegisterUserUseCase {
-            +execute(data: UserRegistrationDTO): UserResponseDTO
-        }
-        class UpdateProfileUseCase {
-            +execute(user_id: int, data: ProfileUpdateDTO): ProfileDTO
-        }
+@startuml
+package "Use Case Layer" {
+
+    abstract class BaseService {
+        -_uow: UnitOfWork
     }
 
-    component Matching {
-        class SwipeUserUseCase {
-            +execute(swiper_id: int, swiped_id: int, action: SwipeAction): MatchResultDTO
-        }
-        class GenerateRecommendationsUseCase {
-            +execute(user_id: int): List[UserRecommendationDTO]
-        }
+    class UserService <<Service>> extends BaseService{
+        +register_user(dto: UserDTO): UserDTO
+        +verify_email(token: str): bool
     }
 
-    component Communication {
-        class SendMessageUseCase {
-            +execute(sender_id: int, match_id: int, content: str): MessageDTO
-        }
+    class MatchService <<Service>> extends BaseService {
+        -_cache: RedisCache <<optional>>
+        +calculate_compatibility(user1: User, user2: User): float
+        +generate_superlike_pool(user_id: int): List[UserDTO]
     }
 
-    component Security {
-        class BlockUserUseCase {
-            +execute(blocker_id: int, blocked_id: int): BlockConfirmationDTO
-        }
+    class SwipeService <<Service>> extends BaseService {
+        +swipe_user(swiper_id: int, swiped_id: int, action: SwipeAction): MatchResultDTO
     }
 
-    component Payment {
-        class ProcessSubscriptionUseCase {
-            +execute(user_id: int, plan: SubscriptionPlan): SubscriptionDTO
-        }
+    class ReportAndBlockService <<Service>> extends BaseService {
+        +report_user(reporter_id: int, reported_id: int, reason: str): bool
+        +block_user(blocker_id: int, blocked_id: int): bool
     }
-
-    component mapper {
-        class BaseMapper {
-            +toDTO(<T>): <D>
-            +toEntity(<D>): <T>
-        }
-    }
-
-    UserManagement --> Data_Access_Layer : Uses Repositories
-    Matching --> Data_Access_Layer : Uses Repositories
-    Communication --> Data_Access_Layer : Uses Repositories
-    Security --> Data_Access_Layer : Uses Repositories
-    Payment --> Data_Access_Layer : Uses Repositories
 }
+
+component "Domain Layer" {
+    object Entities
+    object Repository_Interfaces
+}
+
+component "Data Access Layer" {
+    class UnitOfWork
+    package Repositories {}
+    package Database_Context {}
+}
+component "Application_Layer" {
+    object Controllers
+    object Mappers
+    object DTOs
+    component Middleware {
+        class AuthMiddleware
+        class LoggingMiddleware
+    }
+}
+
+component Cache_Layer {
+}
+
+
+' Relationships
+Controllers --> BaseService
+Controllers --> MatchService
+Controllers --> Mappers
+
+UserService --> UnitOfWork
+MatchService --> UnitOfWork
+MatchService --> Cache_Layer
+
+Mappers --> Entities
+Mappers --> DTOs
+
+AuthMiddleware --> Controllers
+LoggingMiddleware --> Controllers
+
+UnitOfWork --> Database_Context
+UnitOfWork --> Repositories
+
+Repositories ..|> Repository_Interfaces
+Repository_Interfaces --> Entities
+
+' Notes
+note bottom of UnitOfWork: Singleton pattern để đảm bảo\nchỉ có 1 instance UOW trong toàn ứng dụng
+note bottom of AuthMiddleware: Sử dụng JWT để xác thực\nvà phân quyền người dùng
+note bottom of UserService: Chứa toàn bộ logic nghiệp vụ\nliên quan đến người dùng
+note bottom of MatchService: Sử dụng cache để tối ưu\nhiệu năng matching algorithm
+note bottom of Controllers: Nhận request HTTP\nvà trả về response JSON
+note bottom of Mappers: Chuyển đổi giữa Entity\nvà DTO để tách biệt các layer
+
 @enduml

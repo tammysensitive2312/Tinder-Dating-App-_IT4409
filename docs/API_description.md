@@ -1,4 +1,4 @@
-# Thiết kế API cho Tinder
+`# Thiết kế API cho Tinder
 
 ## Mục lục
 - [I. Các API chính có thể có](#i-các-api-chính-có-thể-có)
@@ -25,7 +25,6 @@
 1. Authentication & Authorization API
 * Đăng ký/ Tạo tài khoản
 - POST /auth/signup: Tạo tài khoản bằng email/SĐT/mạng xã hội
-- POST /auth/oauth/{provide}: Đăng nhập bằng bên thứ 3 tin cậy
 * Xác thực
 - POST /auth/login: Đăng nhập bằng email/mật khẩu
 - POST /auth/refresh-token: làm mới token (với jwt)
@@ -94,6 +93,67 @@
 
 ## II. Mô tả chi tiết API
 
+### Tài Liệu Mã Lỗi và Thông Điệp
+
+Tài liệu này cung cấp danh sách chi tiết các mã lỗi, thông điệp tương ứng và ghi chú bằng tiếng Việt để hỗ trợ việc hiểu và triển khai trong hệ thống.
+
+#### Bảng Mã Lỗi
+
+| Code | Message                              | Ghi Chú (Tiếng Việt)                              |
+|------|--------------------------------------|--------------------------------------------------|
+| 1000 | OK                                   | Thao tác thành công                              |
+| 9992 | Post is not existed                  | Bài viết không tồn tại                           |
+| 9993 | Code verify is incorrect             | Mã xác thực không đúng                           |
+| 9994 | No Data or end of list data          | Không có dữ liệu hoặc không còn dữ liệu          |
+| 9995 | User is not validated                | Không có người dùng này                          |
+| 9996 | User existed                         | Người dùng đã tồn tại                            |
+| 9997 | Method is invalid                    | Phương thức không đúng                           |
+| 9998 | Token is invalid                     | Sai token                                        |
+| 9999 | Exception error                      | Lỗi exception                                    |
+| 1001 | Can not connect to DB                | Lỗi mất kết nối DB hoặc thực thi câu SQL         |
+| 1002 | Parameter is not enough              | Số lượng tham số không đầy đủ                    |
+| 1003 | Parameter type is invalid            | Kiểu tham số không dùng được                     |
+| 1004 | Parameter value is invalid           | Giá trị của tham số không hợp lệ                 |
+| 1005 | Unknown error                        | Lỗi không xác định                               |
+| 1006 | File size is too big                 | Kích cỡ file vượt mức cho phép                   |
+| 1007 | Upload File Failed!                  | Tải file lên thất bại                            |
+| 1008 | Maximum number of images             | Số lượng hình ảnh vượt quá quy định              |
+| 1009 | Not access                           | Không có quyền truy cập tài nguyên               |
+| 1010 | Action has been done previously by this user | Hành động đã được người dùng thực hiện trước đó |
+
+#### Ghi Chú Bổ Sung
+
+Dưới đây là giải thích chi tiết về ý nghĩa của từng nhóm mã lỗi:
+
+- **Mã 1000**: Biểu thị thao tác thành công, không có lỗi xảy ra.
+- **Mã 9992–9999**: Đại diện cho các lỗi liên quan đến xác thực và sự tồn tại, bao gồm:
+  - Bài viết không tồn tại (9992)
+  - Mã xác thực sai (9993)
+  - Không còn dữ liệu (9994)
+  - Người dùng không hợp lệ hoặc đã tồn tại (9995, 9996)
+  - Phương thức hoặc token không đúng (9997, 9998)
+  - Lỗi ngoại lệ (9999)
+- **Mã 1001–1005**: Liên quan đến các vấn đề về cơ sở dữ liệu và tham số:
+  - Lỗi kết nối hoặc thực thi SQL (1001)
+  - Tham số không đủ hoặc không hợp lệ (1002, 1003, 1004)
+  - Lỗi không xác định (1005)
+- **Mã 1006–1008**: Liên quan đến vấn đề tải file:
+  - File vượt kích thước cho phép (1006)
+  - Tải file thất bại (1007)
+  - Vượt quá số lượng hình ảnh tối đa (1008)
+- **Mã 1009–1010**: Liên quan đến quyền truy cập và hành động lặp lại:
+  - Không có quyền truy cập (1009)
+  - Hành động đã được thực hiện trước đó (1010)
+
+## Hướng Dẫn Sử Dụng
+
+Bảng mã lỗi này có thể được sử dụng để:
+- Xử lý lỗi trong ứng dụng.
+- Cung cấp phản hồi phù hợp cho người dùng dựa trên mã lỗi và thông điệp.
+- Tích hợp vào tài liệu dự án để các nhà phát triển tham khảo.
+
+Nếu bạn cần thêm thông tin hoặc chỉnh sửa, hãy cho tôi biết!
+
 ### 1. Authentication & Authorization API
 
 | **API**                   | **Method** | **Endpoint**             | **Input**                                           | **Output**                                 |
@@ -124,22 +184,7 @@
 
 ---
 
-#### 2. Đăng nhập bằng OAuth (`POST /auth/oauth/{provider}`)
-
-| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                                                     |
-|------------|--------------------|------------------|--------------|---------------------------------------------------------------|
-| 1          | `access_token`     | `string`         | Có           | Access token từ nhà cung cấp OAuth (Google, Facebook, Apple). |
-
-**Output:**
-
-| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Mô tả**                                         |
-|------------|--------------------|------------------|---------------------------------------------------|
-| 1          | `id`               | `string`         | ID duy nhất của người dùng trong hệ thống.        |
-| 2          | `token`            | `string`         | JWT token dùng để xác thực các request tiếp theo. |
-
----
-
-#### 3. Đăng nhập bằng email (`POST /auth/login`)
+#### 2. Đăng nhập bằng email (`POST /auth/login`)
 
 | **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                        |
 |------------|--------------------|------------------|--------------|----------------------------------|
@@ -155,7 +200,7 @@
 
 ---
 
-#### 4. Làm mới token (`POST /auth/refresh-token`)
+#### 3. Làm mới token (`POST /auth/refresh-token`)
 
 | **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                                        |
 |------------|--------------------|------------------|--------------|--------------------------------------------------|
@@ -165,11 +210,11 @@
 
 | **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Mô tả**                                             |
 |------------|--------------------|------------------|-------------------------------------------------------|
-| 1          | `new_token`        | `string`         | JWT token mới dùng để xác thực các request tiếp theo. |
+| 1          | `refresh_token`    | `string`         | JWT token mới dùng để xác thực các request tiếp theo. |
 
 ---
 
-#### 5. Yêu cầu đặt lại mật khẩu (`POST /auth/reset-password`)
+#### 4. Yêu cầu đặt lại mật khẩu (`POST /auth/reset-password`)
 
 | **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                        |
 |------------|--------------------|------------------|--------------|----------------------------------|
@@ -183,7 +228,7 @@
 
 ---
 
-#### 6. Xác nhận đặt lại mật khẩu (`PUT /auth/reset-password`)
+#### 5. Xác nhận đặt lại mật khẩu (`PUT /auth/reset-password`)
 
 | **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                                       |
 |------------|--------------------|------------------|--------------|-------------------------------------------------|
@@ -198,14 +243,29 @@
 
 ---
 
+#### 6. Yêu cầu thay đổi mật khẩu (`POST /auth/change-password`)
+
+| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                                       |
+|------------|--------------------|------------------|--------------|-------------------------------------------------|
+| 1          | `email`            | `string`         | Có           | email của người dùng.                           |
+| 2          | `password`         | `string`         | Có           | Mật khẩu mới của người dùng, tối thiểu 8 ký tự. |
+
+**Output:**
+
+| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Mô tả**                                                      |
+|------------|--------------------|------------------|----------------------------------------------------------------|
+| 1          | `status`           | `string`         | Trạng thái của request, giá trị là `"success"` nếu thành công. |
+
+---
+
 ### 2. Profile Management API
 
-| **API**                     | **Method** | **Endpoint**           | **Input**                                      | **Output**                                                             |
-|-----------------------------|------------|------------------------|------------------------------------------------|------------------------------------------------------------------------|
-| Lấy thông tin profile       | GET        | `/profile/me`          | Header: `token: string`                        | `{ name: string, bio: string, photos: [string], preferences: object }` |
-| Cập nhật thông tin profile  | PUT        | `/profile/me`          | `{ bio: string, gender: string, job: string }` | `{ updated_profile: object }`                                          |
-| Tải lên ảnh đại diện        | POST       | `/profile/me/photos`   | FormData: `image: file`                        | `{ photo_id: string, url: string }`                                    |
-| Cập nhật thiết lập tìm kiếm | PUT        | `/profile/preferences` | `{ max_age: number, max_distance: number }`    | `{ updated_prefs: object }`                                            |
+| **API**                                                            | **Method** | **Endpoint**           | **Input**                                      | **Output**                                                             |
+|--------------------------------------------------------------------|------------|------------------------|------------------------------------------------|------------------------------------------------------------------------|
+| Lấy thông tin profile                                              | GET        | `/profile/me`          | Header: `token: string`                        | `{ name: string, bio: string, photos: [string], preferences: object }` |
+| Cập nhật thông tin profile                                         | PUT        | `/profile/me`          | `{ bio: string, gender: string, job: string }` | `{ updated_profile: object }`                                          |
+| Tải lên ảnh đại diện                                               | POST       | `/profile/me/photos`   | FormData: `image: file`                        | `{ photo_id: string, url: string }`                                    |
+| Cập nhật thiết lập tìm kiếm<br/>người dùng theo tiêu chí mong muốn | PUT        | `/profile/preferences` | `{ max_age: number, max_distance: number }`    | `{ updated_prefs: object }`                                            |
 
 ### Chi tiết Input và Output của Profile Management API
 
@@ -222,7 +282,7 @@
 | 1          | `name`             | `string`         | Tên hiển thị của người dùng.                       |
 | 2          | `bio`              | `string`         | Mô tả ngắn về bản thân.                            |
 | 3          | `photos`           | `[string]`       | Danh sách URL ảnh đại diện.                        |
-| 4          | `preferences`      | `object`         | Thiết lập tìm kiếm (tuổi, khoảng cách, giới tính). |
+| 4          | `preferences`      | `json`           | Thiết lập tìm kiếm (tuổi, khoảng cách, giới tính). |
 
 ---
 
@@ -246,23 +306,23 @@
 
 | **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                               |
 |------------|--------------------|------------------|--------------|-----------------------------------------|
-| 1          | `image`            | `file`           | Có           | File ảnh đại diện (định dạng JPEG/PNG). |
+| 1          | `images`           | `file`           | Có           | File ảnh đại diện (định dạng JPEG/PNG). |
 
 **Output:**
 
-| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Mô tả**               |
-|------------|--------------------|------------------|-------------------------|
-| 1          | `photo_id`         | `string`         | ID của ảnh đã tải lên.  |
-| 2          | `url`              | `string`         | URL của ảnh đã tải lên. |
+| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Mô tả**                                                      |
+|------------|--------------------|------------------|----------------------------------------------------------------|
+| 1          | `status`           | `string`         | Trạng thái của request, giá trị là `"success"` nếu thành công. |
 
 ---
 
 #### 4. Cập nhật thiết lập tìm kiếm (`PUT /profile/preferences`)
 
-| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                                 |
-|------------|--------------------|------------------|--------------|-------------------------------------------|
-| 1          | `max_age`          | `number`         | Không        | Tuổi tối đa của người dùng muốn tìm kiếm. |
-| 2          | `max_distance`     | `number`         | Không        | Khoảng cách tối đa (đơn vị: km).          |
+| **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                                    |
+|------------|--------------------|------------------|--------------|----------------------------------------------|
+| 1          | `max_age`          | `number`         | Không        | Tuổi tối đa của người dùng muốn tìm kiếm.    |
+| 1          | `min_age`          | `number`         | Không        | Tuổi tối thiểu của người dùng muốn tìm kiếm. |
+| 2          | `max_distance`     | `number`         | Không        | Khoảng cách tối đa (đơn vị: km).             |
 
 **Output:**
 
@@ -586,4 +646,4 @@
 |------------|--------------------|------------------|------------------------------|
 | 1          | `top_tracks`       | `[object]`       | Danh sách bài hát yêu thích. |
 | 1.1        | `name`             | `string`         | Tên bài hát.                 |
-| 1.2        | `artist`           | `string`         | Tên nghệ sĩ.                 |
+| 1.2        | `artist`           | `string`         | Tên nghệ sĩ.                 |`

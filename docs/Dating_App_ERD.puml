@@ -1,103 +1,128 @@
-@startuml domain_layer
-    component Entities {
-        class User {
-            +int Id
-            +string email
-            +string password
-            +boolean isActive
-        }
-        class Profile {
-            +int Id
-            +int userID
-            +string username
-            +string bio
-            +enum gender
-            +Date birthdate
-            +string location
-            }
-        class Photo {
-            +int Id
-            +string url
-            +int order
+@startuml
 
-            +int profileId
-        }
+object User {
+  Id: int <<PK>>
+  email: string
+  passwordHash: string
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
 
-        class Swipe {
-            +int Id
-            +enum action
-            +Date date
+object Profile {
+  Id: int <<PK>>
+  userId: int <<FK to User.Id>>
+  username: string
+  bio: string
+  gender: enum {male, female, other}
+  birthdate: Date
+  location: string
+  createdAt: Date
+  updatedAt: Date
+}
 
-            +int swiperId
-            +int swipedId
-            +Date createdAt
-        }
-        class Match {
-            +int Id
-            +Date createdAt
-            +boolean isActive
-        }
-        class Message {
-            +int Id
-            +string content
-            +Date createdAt
-            +boolean isRead
+object Photo {
+  Id: int <<PK>>
+  profileId: int <<FK to Profile.Id>>
+  url: string
+  order: int
+  createdAt: Date
+}
 
-            +int senderId
-            +int matchId
-        }
-        class Notification {
-            +int Id
-            +string content
-            +Date createdAt
-            +boolean isRead
-            +enum type
+object Preference {
+  Id: int <<PK>>
+  profileId: int <<FK to Profile.Id>>
+  minAge: int
+  maxAge: int
+  maxDistance: int
+  gender_preference: enum {male, female, both, other}
+  createdAt: Date
+  updatedAt: Date
+}
 
-            +int userId
-        }
-        class Preference {
-            +int Id
-            +int profileId
-            +int minAge
-            +int maxAge
-            +int maxDistance
-            +enum gender_preference
-        }
-        class Subcription {
-            +int Id
-            +Date startDate
-            +Date endDate
-            +enum plan
-            +boolean isActive
+object Swipe {
+  Id: int <<PK>>
+  swiperId: int <<FK to User.Id>>
+  swipedId: int <<FK to User.Id>>
+  action: enum {like, dislike, superlike}
+  createdAt: Date
+}
 
-            +int userId
-        }
-        class Report {
-            +int Id
-            +string reason
-            +Date createdAt
+object Match {
+  Id: int <<PK>>
+  user1Id: int <<FK to User.Id>>
+  user2Id: int <<FK to User.Id>>
+  createdAt: Date
+  isActive: boolean
+}
 
-            +int reporterId
-            +int reportedId
-        }
-        class Block {
-            +int Id
-            +Date createdAt
+object Message {
+  Id: int <<PK>>
+  matchId: int <<FK to Match.Id>>
+  senderId: int <<FK to User.Id>>
+  content: string
+  createdAt: Date
+  isRead: boolean
+}
 
-            +int blockerId
-            +int blockedId
-        }
-    }
+object Notification {
+  Id: int <<PK>>
+  userId: int <<FK to User.Id>>
+  content: string
+  type: enum {match, message, subscription, other}
+  createdAt: Date
+  isRead: boolean
+}
 
-    User "1" ..> "1" Profile
-    Profile "1" ..> "0..n" Photo
-    User "1" ..> "0..n" Swipe
-    User "0..n" ..> "0..n" Match
-    User "1" ..> "0..n" Message
-    User "1" ..> "0..n" Notification
-    Profile "1" ..> "1" Preference
-    User "1" ..> "0..n" Subcription
-'    User "0..n" ..> "0..n" Report
-'    User "0..n" ..> "0..n" Block
-    User "0..n" ..> "0..n" User
+object Subscription {
+  Id: int <<PK>>
+  userId: int <<FK to User.Id>>
+  plan: enum {basic, premium, plus}
+  startDate: Date
+  endDate: Date
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+object Report {
+  Id: int <<PK>>
+  reporterId: int <<FK to User.Id>>
+  reportedId: int <<FK to User.Id>>
+  reason: string
+  createdAt: Date
+  + unique(reporterId, reportedId)
+}
+
+object Block {
+  Id: int <<PK>>
+  blockerId: int <<FK to User.Id>>
+  blockedId: int <<FK to User.Id>>
+  createdAt: Date
+  + unique(blockerId, blockedId)
+}
+
+' Các mối quan hệ
+User ||--|| Profile : has
+Profile ||--|| Preference : has
+Profile ||--o{ Photo : has
+
+User ||--o{ Swipe : "swiper"
+User ||--o{ Swipe : "swiped"
+
+User ||--o{ Match : "user1"
+User ||--o{ Match : "user2"
+
+Match ||--o{ Message : has
+User ||--o{ Message : sends
+
+User ||--o{ Notification : receives
+User ||--o{ Subscription : has
+
+User ||--o{ Report : "reporter"
+User ||--o{ Report : "reported"
+
+User ||--o{ Block : "blocker"
+User ||--o{ Block : "blocked"
+
 @enduml
