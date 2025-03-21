@@ -1,0 +1,77 @@
+@startuml RegisterUserSequence
+actor Client
+participant AuthMiddleware
+participant LoggingMiddleware
+participant UserController
+participant UserMapper
+participant UserService
+participant UnitOfWork
+participant UserRepository
+participant ProfileRepository
+participant Database
+
+Client -> AuthMiddleware: POST /register
+activate AuthMiddleware
+AuthMiddleware -> LoggingMiddleware: Forward request
+activate LoggingMiddleware
+
+LoggingMiddleware -> UserController: Handle request
+activate UserController
+
+UserController -> UserMapper: to_entity(request.json)
+activate UserMapper
+UserMapper --> UserController: User entity
+deactivate UserMapper
+
+UserController -> UserService: register_user(user_dto)
+activate UserService
+
+UserService -> UnitOfWork: __enter__()
+activate UnitOfWork
+UnitOfWork -> UserRepository: Initialize
+UnitOfWork -> ProfileRepository: Initialize
+UnitOfWork --> UserService:
+deactivate UnitOfWork
+
+UserService -> UserRepository: find_by_email()
+activate UserRepository
+UserRepository -> Database: Query Users
+Database --> UserRepository: Result
+UserRepository --> UserService:
+deactivate UserRepository
+
+UserService -> UserRepository: add(new_user)
+activate UserRepository
+UserRepository -> Database: Insert User
+Database --> UserRepository:
+deactivate UserRepository
+
+UserService -> ProfileRepository: add(new_profile)
+activate ProfileRepository
+ProfileRepository -> Database: Insert Profile
+Database --> ProfileRepository:
+deactivate ProfileRepository
+
+UserService -> UnitOfWork: commit()
+activate UnitOfWork
+UnitOfWork -> Database: Commit transaction
+UnitOfWork --> UserService:
+deactivate UnitOfWork
+
+UserService --> UserController: User entity
+deactivate UserService
+
+UserController -> UserMapper: to_dto(user)
+activate UserMapper
+UserMapper --> UserController: UserDTO
+deactivate UserMapper
+
+UserController --> LoggingMiddleware: Response
+deactivate UserController
+
+LoggingMiddleware --> AuthMiddleware:
+deactivate LoggingMiddleware
+
+AuthMiddleware --> Client: 201 Created
+deactivate AuthMiddleware
+@enduml

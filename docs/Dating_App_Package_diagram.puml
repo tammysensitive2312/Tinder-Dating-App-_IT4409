@@ -323,3 +323,154 @@ note bottom of Controllers: Nhận request HTTP\nvà trả về response JSON
 note bottom of Mappers: Chuyển đổi giữa Entity\nvà DTO để tách biệt các layer
 
 @enduml
+
+@startuml application_layer
+
+' Định nghĩa package chính cho Application Layer
+package "Application Layer" {
+
+    ' Package Controllers
+    package "Controllers" {
+        class UserController {
+            + register_user(request: Request): Response
+            + verify_email(request: Request): Response
+            + get_user_profile(request: Request): Response
+            + update_user_profile(request: Request): Response
+        }
+
+        class MatchController {
+            + get_matches(request: Request): Response
+            + get_superlike_pool(request: Request): Response
+        }
+
+        class SwipeController {
+            + swipe_user(request: Request): Response
+        }
+
+        class ReportAndBlockController {
+            + report_user(request: Request): Response
+            + block_user(request: Request): Response
+        }
+    }
+
+    ' Package Middleware
+    package "Middleware" {
+        class AuthMiddleware {
+            + before_request(request: Request): Optional[Response]
+            + after_request(response: Response): Response
+        }
+
+        class LoggingMiddleware {
+            + before_request(request: Request): Optional[Response]
+            + after_request(response: Response): Response
+        }
+    }
+
+    ' Package Logging
+    package "Logging" {
+        class Logger {
+            + log_request(request: Request)
+            + log_response(response: Response)
+            + log_error(error: Exception)
+        }
+    }
+
+    ' Package Routing
+    package "Routing" {
+    class Router {
+        +routes: Dict[str, Route]
+        +prefix: str
+        +middlewares: List[Middleware]
+        +add_route()
+        +group()
+        +handle_request()
+    }
+
+    class Route {
+        +path: str
+        +handler: Callable
+        +methods: List[str]
+        +middlewares: List[Middleware]
+    }
+
+    Router "1" *-- "many" Route
+    Router o-- AuthMiddleware
+    Router o-- LoggingMiddleware
+    Router --> UserController
+    }
+
+    ' Package Mappers
+    package "Mappers" {
+        class UserMapper {
+            + to_dto(user: User): UserDTO
+            + to_entity(user_dto: UserDTO): User
+        }
+
+        class ProfileMapper {
+            + to_dto(profile: Profile): ProfileDTO
+            + to_entity(profile_dto: ProfileDTO): Profile
+        }
+
+        class SwipeMapper {
+            + to_dto(swipe: Swipe): SwipeDTO
+            + to_entity(swipe_dto: SwipeDTO): Swipe
+        }
+    }
+
+    ' Package DTOs
+    package "DTOs" {
+        class UserDTO
+        class ProfileDTO
+        class SwipeDTO
+        class MatchResultDTO
+    }
+}
+
+' Định nghĩa các mối quan hệ giữa các package trong Application Layer
+Controllers --> Mappers : "Uses"
+Controllers --> DTOs : "Uses"
+Mappers --> DTOs : "Maps to/from"
+Middleware --> Controllers : "Wraps"
+Routing --> Controllers : "Routes to"
+Logging --> Middleware : "Used by"
+Logging --> Controllers : "Used by"
+
+' Định nghĩa các thành phần bên ngoài (external dependencies)
+component "Domain Layer" {
+    object Entities
+}
+
+component "Use Case Layer" {
+    object Services
+}
+
+' Mối quan hệ với các layer khác
+Controllers --> Services : "Calls"
+Mappers --> Entities : "Depends on"
+
+' Ghi chú để giải thích chức năng của từng package
+note bottom of Controllers
+    Xử lý HTTP requests và responses
+end note
+
+note bottom of Middleware
+    Xử lý authentication, logging, v.v.
+end note
+
+note bottom of Logging
+    Ghi log cho toàn bộ ứng dụng
+end note
+
+note bottom of Routing
+    Điều hướng requests đến controllers
+end note
+
+note bottom of Mappers
+    Chuyển đổi giữa Entities và DTOs
+end note
+
+note bottom of DTOs
+    Data Transfer Objects cho API
+end note
+
+@enduml

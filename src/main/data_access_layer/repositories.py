@@ -21,6 +21,9 @@ class UserRepository(BaseRepository, IUserRepository):
     def get_by_id(self, id: int) -> User:
         return self.session.query(User).get(id)
 
+    def find_by_email(self, email: str) -> User:
+        return self.session.query(User).filter(User.email == email).first()
+
     def find_active_users(self) -> list[User]:
         query = self.session.query(User)
         query = self._apply_strategies(query)

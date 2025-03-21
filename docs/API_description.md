@@ -159,7 +159,6 @@ Nếu bạn cần thêm thông tin hoặc chỉnh sửa, hãy cho tôi biết!
 | **API**                   | **Method** | **Endpoint**             | **Input**                                           | **Output**                                 |
 |---------------------------|------------|--------------------------|-----------------------------------------------------|--------------------------------------------|
 | Đăng ký tài khoản         | POST       | `/auth/signup`           | `{ email: string, password: string, name: string }` | `{ id: string, token: string }`            |
-| Đăng nhập bằng OAuth      | POST       | `/auth/oauth/{provider}` | `{ access_token: string }`                          | `{ id: string, token: string }`            |
 | Đăng nhập bằng email      | POST       | `/auth/login`            | `{ email: string, password: string }`               | `{ token: string, refresh_token: string }` |
 | Làm mới token             | POST       | `/auth/refresh-token`    | Header: `refresh_token: string`                     | `{ new_token: string }`                    |
 | Yêu cầu đặt lại mật khẩu  | POST       | `/auth/reset-password`   | `{ email: string }`                                 | `{ otp_expiry: string }`                   |
