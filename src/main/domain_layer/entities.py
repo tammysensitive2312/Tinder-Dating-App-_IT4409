@@ -19,9 +19,9 @@ class GenderPreference(Enum):
 
 class User(Base):
     __tablename__ = 'users'
-    Id = Column(Integer, primary_key=True)
-    email = Column(String, unique=True, nullable=False)
-    passwordHash = Column(String, nullable=False)
+    Id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False)  # Độ dài 255
+    passwordHash = Column(String(255), nullable=False)  # Độ dài 255
     isActive = Column(Boolean, default=True)
     createdAt = Column(Date, default=datetime.now())
     updatedAt = Column(Date, default=datetime.now(), onupdate=datetime.now())
@@ -38,11 +38,11 @@ class Profile(Base):
     __tablename__ = 'profiles'
     Id = Column(Integer, primary_key=True)
     userId = Column(Integer, ForeignKey('users.Id'), unique=True, nullable=False)
-    username = Column(String, unique=True, nullable=False)
-    bio = Column(String)
+    username = Column(String(50), unique=True, nullable=False)  # Độ dài 50
+    bio = Column(String(500))  # Độ dài 500
     gender = Column(SQLEnum(Gender))
     birthdate = Column(Date)
-    location = Column(String)
+    location = Column(String(100))  # Độ dài 100
     createdAt = Column(Date, default=datetime.now())
     updatedAt = Column(Date, default=datetime.now(), onupdate=datetime.now())
 
@@ -54,7 +54,7 @@ class Photo(Base):
     __tablename__ = 'photos'
     Id = Column(Integer, primary_key=True)
     profileId = Column(Integer, ForeignKey('profiles.Id'), nullable=False)
-    url = Column(String, nullable=False)
+    url = Column(String(255), nullable=False)  # Độ dài 255
     order = Column(Integer)
     createdAt = Column(Date, default=datetime.now())
 
@@ -78,7 +78,7 @@ class Swipe(Base):
     Id = Column(Integer, primary_key=True)
     swiperId = Column(Integer, ForeignKey('users.Id'), nullable=False)
     swipedId = Column(Integer, ForeignKey('users.Id'), nullable=False)
-    action = Column(String, nullable=False)
+    action = Column(String(50), nullable=False)  # Độ dài 50
     createdAt = Column(Date, default=datetime.now())
 
     swiper = relationship("User", foreign_keys=[swiperId], back_populates="swipes")
@@ -101,7 +101,7 @@ class Message(Base):
     Id = Column(Integer, primary_key=True)
     matchId = Column(Integer, ForeignKey('matches.Id'), nullable=False)
     senderId = Column(Integer, ForeignKey('users.Id'), nullable=False)
-    content = Column(String, nullable=False)
+    content = Column(String(1000), nullable=False)  # Độ dài 1000
     createdAt = Column(Date, default=datetime.now())
     isRead = Column(Boolean, default=False)
 
@@ -112,8 +112,8 @@ class Notification(Base):
     __tablename__ = 'notifications'
     Id = Column(Integer, primary_key=True)
     userId = Column(Integer, ForeignKey('users.Id'), nullable=False)
-    content = Column(String, nullable=False)
-    type = Column(String, nullable=False)
+    content = Column(String(500), nullable=False)  # Độ dài 500
+    type = Column(String(50), nullable=False)  # Độ dài 50
     createdAt = Column(Date, default=datetime.now())
     isRead = Column(Boolean, default=False)
 
@@ -123,7 +123,7 @@ class Subscription(Base):
     __tablename__ = 'subscriptions'
     Id = Column(Integer, primary_key=True)
     userId = Column(Integer, ForeignKey('users.Id'), nullable=False)
-    plan = Column(String, nullable=False)
+    plan = Column(String(50), nullable=False)  # Độ dài 50
     startDate = Column(Date, nullable=False)
     endDate = Column(Date, nullable=False)
     isActive = Column(Boolean, default=True)
@@ -137,7 +137,7 @@ class Report(Base):
     Id = Column(Integer, primary_key=True)
     reporterId = Column(Integer, ForeignKey('users.Id'), nullable=False)
     reportedId = Column(Integer, ForeignKey('users.Id'), nullable=False)
-    reason = Column(String, nullable=False)
+    reason = Column(String(500), nullable=False)  # Độ dài 500
     createdAt = Column(Date, default=datetime.now())
 
     reporter = relationship("User", foreign_keys=[reporterId], back_populates="reports")

@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
+from main.domain_layer.entities import Base
 
 
 class SqlAlchemyDbContext:
@@ -20,7 +21,7 @@ class SqlAlchemyDbContext:
         # Tạo engine với connection_string và các tham số
         self.engine = create_engine(self.connection_string, **engine_params)
         self.Session = scoped_session(sessionmaker(bind=self.engine))
-        self.Model = declarative_base()
+        self.Model = Base
 
     def _build_connection_string(self, config):
         """Build connection string based on database type and config"""

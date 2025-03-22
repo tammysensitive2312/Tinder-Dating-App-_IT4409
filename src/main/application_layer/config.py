@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from typing import Any, Dict, Optional
 from dotenv import load_dotenv
 
@@ -29,6 +30,11 @@ class Config:
         self.DB_POOL_SIZE = int(os.getenv('DB_POOL_SIZE'))
         self.DB_MAX_OVERFLOW = int(os.getenv('DB_MAX_OVERFLOW'))
         self.DB_POOL_TIMEOUT = int(os.getenv('DB_POOL_TIMEOUT'))
+
+        # JWT configurations
+        self.JWT_SECRET = os.getenv('JWT_SECRET')
+        self.JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
+        self.JWT_EXPIRATION = timedelta(seconds=int(os.getenv("EXPIRATION_TIME")))
 
 
     def _parse_bool(self, value: str) -> bool:

@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from base_service import AbstractBaseService
+import bcrypt
+
+from main.use_case_layer.base_service import AbstractBaseService
 from flask_jwt_extended import create_access_token, create_refresh_token
 from main.domain_layer import User, Profile
 
@@ -15,8 +17,8 @@ class UserService(AbstractBaseService):
 
     def register_user(self, email: str, password: str, name: str) -> dict[str, str]:
         try:
-            with self.uow:
-                if self.uow.users.find_by_email(email):
+            with self.uow.start() as uow:
+                if uow.users.find_by_email(email):
                     raise ValueError("Email already exists")
 
                 new_user = User(
@@ -26,14 +28,23 @@ class UserService(AbstractBaseService):
                     createdAt=datetime.now()
                 )
 
-                self.uow.users.add(new_user)
+                print("line 1 new_user:", new_user.__dict__)
+                print("line 1 new_user.Id:", new_user.Id)
+
+                uow.users.add(new_user)
+                uow.flush()
+
+                print("line 2 new_user:", new_user.__dict__)
+                print("line 2 new_user.Id:", new_user.Id)
 
                 new_profile = Profile(
                     userId=new_user.Id,
                     username=name,
                     createdAt=datetime.now()
                 )
-                self.uow.profiles.add(new_profile)
+
+                print("new_profile:", new_profile.__dict__)
+                uow.profiles.add(new_profile)
 
                 identity = {
                     "user_id": new_user.Id,
@@ -54,6 +65,9 @@ class UserService(AbstractBaseService):
 
 
     def __hash_password(self, password: str) -> str:
-        import hashlib
-        password_hash = hashlib.md5(password.encode()).hexdigest()
-        return  password_hash
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+
+    def __verify_password(self, password: str, hashed_password: str) -> bool:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))

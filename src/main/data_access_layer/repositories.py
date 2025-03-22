@@ -1,7 +1,9 @@
+from typing import List
+
 from sqlalchemy.orm import joinedload
 
 from main.data_access_layer.strategies import QueryStrategy
-from main.domain_layer import IUserRepository, IProfileRepository, ISwipeRepository, IQueryStrategy
+from main.domain_layer import IUserRepository, IProfileRepository, ISwipeRepository, IQueryStrategy, T
 from main.domain_layer import User, Profile, Swipe
 
 class BaseRepository:
@@ -18,6 +20,21 @@ class BaseRepository:
         return query
 
 class UserRepository(BaseRepository, IUserRepository):
+    def get_base_query(self):
+        pass
+
+    def get_all(self) -> List[T]:
+        pass
+
+    def add(self, user):
+        self.session.add(user)
+
+    def update(self, entity: T) -> None:
+        pass
+
+    def delete(self, entity: T) -> None:
+        pass
+
     def get_by_id(self, id: int) -> User:
         return self.session.query(User).get(id)
 
@@ -36,6 +53,24 @@ class UserRepository(BaseRepository, IUserRepository):
             first()
 
 class ProfileRepository(BaseRepository, IProfileRepository):
+    def get_base_query(self):
+        pass
+
+    def get_by_id(self, id: int) -> T:
+        pass
+
+    def get_all(self) -> List[T]:
+        pass
+
+    def add(self, entity: T) -> None:
+        self.session.add(entity)
+
+    def update(self, entity: T) -> None:
+        pass
+
+    def delete(self, entity: T) -> None:
+        pass
+
     def update_bio(self, user_id: int, new_bio: str):
         profile = self.session.query(Profile).\
             filter(Profile.userId == user_id).\
@@ -51,6 +86,24 @@ class ProfileRepository(BaseRepository, IProfileRepository):
             first()
 
 class SwipeRepository(BaseRepository, ISwipeRepository):
+    def get_base_query(self):
+        pass
+
+    def get_by_id(self, id: int) -> T:
+        pass
+
+    def get_all(self) -> List[T]:
+        pass
+
+    def add(self, entity: T) -> None:
+        pass
+
+    def update(self, entity: T) -> None:
+        pass
+
+    def delete(self, entity: T) -> None:
+        pass
+
     def get_recent_swipes(self, user_id: int, days: int) -> list[Swipe]:
         from datetime import datetime, timedelta
         cutoff = datetime.now() - timedelta(days=days)

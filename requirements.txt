@@ -1,0 +1,13 @@
+Flask
+SQLAlchemy
+dotenv
+python-dotenv
+dependency-injector
+Jinja2
+mysqlclient
+pymysql
+flask-jwt-extended
+PyJWT~=2.6.0
+pydantic
+pydantic[email]
+bcrypt

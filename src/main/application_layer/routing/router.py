@@ -9,19 +9,23 @@ class Route:
         self.middlewares = middlewares or []
 
 class Router:
-    def __init__(self):
+    def __init__(self, prefix: str = "", parent: Optional['Router'] = None):
         self.blueprints: Dict[str, Blueprint] = {}
         self._routes: Dict[str, Route] = {}
-        self.prefix = ""
+        self.prefix = prefix
+        self.parent = parent
         self.middlewares: List[Callable] = []
 
     def add_route(self, path: str, handler: Callable, methods: List[str], middlewares: List[Callable] = None):
-        full_path = f"{self.prefix}{path}"
-        self._routes[full_path] = Route(full_path, handler, methods, middlewares)
+        full_path = f"{self.prefix}{path}".replace("//", "/")
+        if self.parent:
+            self.parent.add_route(full_path, handler, methods, self.middlewares + (middlewares or []))
+        else:
+            self._routes[full_path] = Route(full_path, handler, methods, self.middlewares + (middlewares or []))
 
     def group(self, prefix: str, middlewares: List[Callable] = None) -> 'Router':
-        subgroup = Router()
-        subgroup.prefix = f"{self.prefix}{prefix}"
+        """Tạo subgroup với prefix và middlewares, liên kết với router cha."""
+        subgroup = Router(prefix=f"{self.prefix}{prefix}", parent=self)
         subgroup.middlewares = self.middlewares + (middlewares or [])
         return subgroup
 

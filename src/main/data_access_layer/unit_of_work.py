@@ -1,26 +1,29 @@
+from main.data_access_layer.repositories import UserRepository, ProfileRepository, SwipeRepository
 from contextlib import contextmanager
-
-from main.data_access_layer import UserRepository, ProfileRepository, SwipeRepository
 
 
 class UnitOfWork:
     def __init__(self, db_context):
-        self.db_context = db_context
-        self.session = db_context.Session()
+        self.db_context = db_context  # Giữ reference đến SqlAlchemyDbContext
 
-    def __enter__(self):
-        self.users = UserRepository(self.session)
-        self.profiles = ProfileRepository(self.session)
-        self.swipes = SwipeRepository(self.session)
-        return self
+    @contextmanager
+    def start(self):
+        """Tạo session và quản lý transaction tự động."""
+        session = self.db_context.Session()  # Tạo session mới
+        try:
+            # Khởi tạo repository với session hiện tại
+            self.users = UserRepository(session)
+            self.profiles = ProfileRepository(session)
+            self.swipes = SwipeRepository(session)
+            self.session = session
+            yield self  # Trả về UoW để sử dụng trong with block
+            session.commit()  # Tự động commit nếu không có exception
+        except Exception as e:
+            session.rollback()  # Rollback nếu có lỗi
+            raise e
+        finally:
+            session.close()  # Đảm bảo session luôn được đóng
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type:
-            self.rollback()
-        self.session.close()
-
-    def commit(self):
-        self.session.commit()
-
-    def rollback(self):
-        self.session.rollback()
+    def flush(self):
+        """Explicitly flush session to generate IDs."""
+        self.session.flush()
