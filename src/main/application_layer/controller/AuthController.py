@@ -1,7 +1,7 @@
 from flask import request, jsonify, Response
 from pydantic import ValidationError
 from main.use_case_layer.user_service import UserService
-from main.application_layer.dto.auth_dto import SignupRequestDTO, SignupResponseDTO
+from main.application_layer.dto.auth_dto import SignupRequestDTO, SignupResponseDTO, ApiResponse, STATUS_CODES
 from main.application_layer.pylog import PyLogger as log
 
 
@@ -31,14 +31,36 @@ class AuthController:
                 access_token=result["access_token"],
                 refresh_token=result["refresh_token"]
             )
-            return Response(response_data.json(), mimetype="application/json"), 201
+
+            api_response = ApiResponse(
+                status_code="1000",
+                message=STATUS_CODES["1000"],
+                data=response_data.dict()
+            )
+
+            return api_response.to_json(), 201
 
         except ValidationError as e:
-            return jsonify({"error": str(e)}), 400
+            api_response = ApiResponse(
+                status_code="1004",
+                message=STATUS_CODES["1004"],
+                data={"error": str(e)}
+            )
+            return api_response.to_json(), 400
 
         except ValueError as e:
-            return jsonify({"error": str(e)}), 400
+            api_response = ApiResponse(
+                status_code="9996" if "Email already exists" in str(e) else "1004",
+                message=STATUS_CODES["9996"] if "Email already exists" in str(e) else STATUS_CODES["1004"],
+                data={"error": str(e)}
+            )
+            return api_response.to_json(), 400
 
         except Exception as e:
             self.log.error(f"Error registering user {e}")
-            return jsonify({"error": "Internal server error"}), 500
+            api_response = ApiResponse(
+                status_code="9999",  # Exception error
+                message=STATUS_CODES["9999"],
+                data={"error": "Internal server error"}
+            )
+            return api_response.to_json(), 500
