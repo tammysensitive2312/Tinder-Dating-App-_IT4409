@@ -1,15 +1,37 @@
+from abc import ABC
 from typing import List
 
 from sqlalchemy.orm import joinedload
 
 from main.data_access_layer.strategies import QueryStrategy
-from main.domain_layer import IUserRepository, IProfileRepository, ISwipeRepository, IQueryStrategy, T
+from main.domain_layer import IUserRepository, IProfileRepository, ISwipeRepository, T, \
+    IRepository
 from main.domain_layer import User, Profile, Swipe
 
-class BaseRepository:
+
+class AbstractBaseRepository(IRepository, ABC):
+
     def __init__(self, session):
         self.session = session
         self._strategies = []
+
+    def get_base_query(self):
+        return self.session.query(T)
+
+    def get_by_id(self, id: int) -> T:
+        self.session.query(T).get(id)
+
+    def get_all(self) -> List[T]:
+        self.session.query(T).all()
+
+    def add(self, entity: T) -> None:
+        self.session.add(entity)
+
+    def update(self, entity: T) -> None:
+        self.session.commit
+
+    def delete(self, entity: T) -> None:
+        self.session.delete(entity)
 
     def add_filter_strategy(self, strategy: QueryStrategy):
         self._strategies.append(strategy)
@@ -19,24 +41,7 @@ class BaseRepository:
             query = strategy.apply(query)
         return query
 
-class UserRepository(BaseRepository, IUserRepository):
-    def get_base_query(self):
-        pass
-
-    def get_all(self) -> List[T]:
-        pass
-
-    def add(self, user):
-        self.session.add(user)
-
-    def update(self, entity: T) -> None:
-        pass
-
-    def delete(self, entity: T) -> None:
-        pass
-
-    def get_by_id(self, id: int) -> User:
-        return self.session.query(User).get(id)
+class UserRepository(AbstractBaseRepository, IUserRepository):
 
     def find_by_email(self, email: str) -> User:
         return self.session.query(User).filter(User.email == email).first()
@@ -52,24 +57,7 @@ class UserRepository(BaseRepository, IUserRepository):
             filter(User.Id == user_id).\
             first()
 
-class ProfileRepository(BaseRepository, IProfileRepository):
-    def get_base_query(self):
-        pass
-
-    def get_by_id(self, id: int) -> T:
-        pass
-
-    def get_all(self) -> List[T]:
-        pass
-
-    def add(self, entity: T) -> None:
-        self.session.add(entity)
-
-    def update(self, entity: T) -> None:
-        pass
-
-    def delete(self, entity: T) -> None:
-        pass
+class ProfileRepository(AbstractBaseRepository, IProfileRepository):
 
     def update_bio(self, user_id: int, new_bio: str):
         profile = self.session.query(Profile).\
@@ -85,24 +73,7 @@ class ProfileRepository(BaseRepository, IProfileRepository):
             filter(Profile.Id == profile_id).\
             first()
 
-class SwipeRepository(BaseRepository, ISwipeRepository):
-    def get_base_query(self):
-        pass
-
-    def get_by_id(self, id: int) -> T:
-        pass
-
-    def get_all(self) -> List[T]:
-        pass
-
-    def add(self, entity: T) -> None:
-        pass
-
-    def update(self, entity: T) -> None:
-        pass
-
-    def delete(self, entity: T) -> None:
-        pass
+class SwipeRepository(AbstractBaseRepository, ISwipeRepository):
 
     def get_recent_swipes(self, user_id: int, days: int) -> list[Swipe]:
         from datetime import datetime, timedelta

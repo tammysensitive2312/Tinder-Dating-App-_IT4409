@@ -1,7 +1,7 @@
 from flask import request, jsonify, Response
 from pydantic import ValidationError
 from main.use_case_layer.user_service import UserService
-from main.application_layer.dto.auth_dto import SignupRequestDTO, SignupResponseDTO, ApiResponse, STATUS_CODES
+from main.application_layer.DTOs.auth_dto import SignupRequestDTO, SignupResponseDTO, ApiResponse, STATUS_CODES
 from main.application_layer.pylog import PyLogger as log
 
 

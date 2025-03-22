@@ -24,26 +24,8 @@ class IRepository(ABC):
     def delete(self, entity: T) -> None:
         pass
 
-class IQueryStrategy(ABC):
-    @abstractmethod
-    def apply(self, query):
-        pass
 
-class BaseRepository(IRepository, ABC):
-    def __init__(self, db):
-        self.db = db
-
-    def add_strategy(self, strategy: IQueryStrategy):
-        pass
-
-    def remove_strategy(self, strategy_type: type):
-        pass
-
-    @abstractmethod
-    def get_base_query(self):
-        pass
-
-class IUserRepository(BaseRepository):
+class IUserRepository(IRepository):
     @abstractmethod
     def find_by_email(self, email: str):
         pass
@@ -56,7 +38,7 @@ class IUserRepository(BaseRepository):
     def get_with_profile(self, user_id: int):
         pass
 
-class IProfileRepository(BaseRepository):
+class IProfileRepository(IRepository):
     @abstractmethod
     def update_bio(self, user_id: int, new_bio: str):
         pass
@@ -65,7 +47,7 @@ class IProfileRepository(BaseRepository):
     def get_with_photos(self, profile_id: int):
         pass
 
-class ISwipeRepository(BaseRepository):
+class ISwipeRepository(IRepository):
     @abstractmethod
     def get_recent_swipes(self, user_id: int, days: int):
         pass

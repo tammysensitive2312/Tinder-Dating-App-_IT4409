@@ -1,39 +1,39 @@
 @startuml overview architecture
 component DatingApp {
-    component Application_Layer {
-        [Controller]
+    component application_layer {
+        [controllers]
         [DTOs]
     }
 
-    component Use_Case_Layer {
+    component use_case_layer {
          [Services]
     }
 
-    component Cache_Layer {
+    component cache_layer {
         [Cache]
     }
 
-    component Data_Access_Layer {
-        [Repositories]
-        [UnitOfWork]
-        [Database Context]
+    component data_access_layer {
+        [repositories]
+        [unit_of_work]
+        [database_context]
     }
 
     component Domain_Layer {
-        [Entities]
-        [Repository Interfaces]
+        [entities]
+        [repository_interfaces]
     }
 
-    Application_Layer --> Use_Case_Layer
-    Use_Case_Layer --> Data_Access_Layer
-    Use_Case_Layer --> Cache_Layer
-    Data_Access_Layer ..> Domain_Layer : Implements
+    application_layer --> use_case_layer
+    use_case_layer --> data_access_layer
+    use_case_layer --> cache_layer
+    data_access_layer ..> Domain_Layer : Implements
 }
 @enduml
 
 @startuml domain_layer
-component Domain_Layer {
-    component Entities {
+component domain_Layer {
+    component entities {
         class User {
             +int Id
             +string email
@@ -122,7 +122,7 @@ component Domain_Layer {
             +int blockedId
         }
     }
-    package Repository_Interfaces {
+    package repository_interfaces {
         interface IRepository<T> {
             + {abstract} GetById(id: int): T
             + {abstract} GetAll(): IEnumerable<T>
@@ -131,9 +131,40 @@ component Domain_Layer {
             + {abstract} Delete(entity: T): void
         }
 
-        interface IQueryStrategy<T> {
-            + {abstract} Apply(query: IQueryable<T>): IQueryable<T>
+        interface IUserRepository extends IRepository<User> {
+            + FindByEmail(email: string): User
+            + FindActiveUsers(): IEnumerable<User>
+            + GetWithProfile(userId: int): User
         }
+
+        interface IProfileRepository extends IRepository<Profile> {
+            + UpdateBio(userId: int, newBio: string): void
+            + GetWithPhotos(profileId: int): Profile
+        }
+
+        interface ISwipeRepository extends IRepository<Swipe> {
+            + GetRecentSwipes(userId: int, days: int): IEnumerable<Swipe>
+            + GetMutualSwipes(user1Id: int, user2Id: int): IEnumerable<Swipe>
+        }
+    }
+
+    repository_interfaces ..> entities : Dependency
+}
+@enduml
+
+@startuml data_access_layer
+component data_access_layer {
+    package database_context {
+        class SqlAlchemyDbContext {
+            + Session: scoped_session
+            + engine: Engine
+            + Model: declarative_base
+            + init_db()
+            + drop_all()
+        }
+    }
+
+    package repositories {
 
         abstract class BaseRepository<T> {
             # _context: DbContext
@@ -144,20 +175,37 @@ component Domain_Layer {
             # {abstract} GetBaseQuery(): IQueryable<T>
         }
 
-        interface IUserRepository extends BaseRepository<User> {
+        class UserRepository extends BaseRepository<User> {
             + FindByEmail(email: string): User
             + FindActiveUsers(): IEnumerable<User>
             + GetWithProfile(userId: int): User
         }
 
-        interface IProfileRepository extends BaseRepository<Profile> {
+        class ProfileRepository extends BaseRepository<Profile> {
             + UpdateBio(userId: int, newBio: string): void
             + GetWithPhotos(profileId: int): Profile
         }
 
-        interface ISwipeRepository extends BaseRepository<Swipe> {
+        class SwipeRepository extends BaseRepository<Swipe> {
             + GetRecentSwipes(userId: int, days: int): IEnumerable<Swipe>
             + GetMutualSwipes(user1Id: int, user2Id: int): IEnumerable<Swipe>
+        }
+
+    }
+
+    package unit_of_work {
+        class UnitOfWork {
+            + { context_manager } start() : void
+            + flush() : void
+            + users: IUserRepository
+            + profiles: IProfileRepository
+            + swipes: ISwipeRepository
+        }
+    }
+
+    package strategies {
+        interface IQueryStrategy<T> {
+            + {abstract} Apply(query: IQueryable<T>): IQueryable<T>
         }
 
         class GenderFilterStrategy implements IQueryStrategy<User> {
@@ -172,76 +220,53 @@ component Domain_Layer {
         }
     }
 
-    Repository_Interfaces ..> Entities : Dependency
+    database_context --> repositories : Provides session
+    repositories --> strategies : Uses
+    BaseRepository ..> IQueryStrategy : depends on
+    UnitOfWork --> repositories : Manages
+    UnitOfWork --> database_context : Uses session
+
+    }
+
+
+    component Domain_Layer {
+        package Repository_Interfaces {
+            interface IRepository<T> {
+                + {abstract} GetById(id: int): T
+                + {abstract} GetAll(): IEnumerable<T>
+                + {abstract} Add(entity: T): void
+                + {abstract} Update(entity: T): void
+                + {abstract} Delete(entity: T): void
+            }
+
+            interface IUserRepository extends IRepository<User> {
+                + FindByEmail(email: string): User
+                + FindActiveUsers(): IEnumerable<User>
+                + GetWithProfile(userId: int): User
+            }
+
+            interface IProfileRepository extends IRepository<Profile> {
+                + UpdateBio(userId: int, newBio: string): void
+                + GetWithPhotos(profileId: int): Profile
+            }
+
+            interface ISwipeRepository extends IRepository<Swipe> {
+                + GetRecentSwipes(userId: int, days: int): IEnumerable<Swipe>
+                + GetMutualSwipes(user1Id: int, user2Id: int): IEnumerable<Swipe>
+            }
+        }
+
+    }
+
     BaseRepository ..|> IRepository
-}
-@enduml
+    UserRepository ..|> IUserRepository
+    ProfileRepository ..|> IProfileRepository
+    SwipeRepository ..|> ISwipeRepository
 
-@startuml data_access_layer
-component Data_Access_Layer {
-    component Database_Context {
-        class SqlAlchemyDbContext {
-            + Session: scoped_session
-            + engine: Engine
-            + Model: declarative_base
-            + init_db()
-            + drop_all()
-        }
-    }
-
-    component Repositories {
-        class UserRepository {
-            + AddFilterStrategy()
-            + FindActiveUsers()
-            + GetWithProfile()
-        }
-
-        class ProfileRepository {
-            + UpdateBio()
-            + GetWithPhotos()
-        }
-
-        class SwipeRepository {
-            + GetRecentSwipes()
-            + GetMutualSwipes()
-        }
-
-        class CustomQueryBuilder {
-            + ApplyStrategies()
-            + Build()
-        }
-    }
-
-    component UnitOfWork {
-        class UnitOfWork {
-            + __enter__()
-            + __exit__()
-            + commit()
-            + rollback()
-            + users: IUserRepository
-            + profiles: IProfileRepository
-            + swipes: ISwipeRepository
-        }
-    }
-
-    component Strategies {
-        class GenderFilterStrategy
-        class LocationFilterStrategy
-        class ActivityFilterStrategy
-    }
-
-    Database_Context --> Repositories : Provides session
-    Repositories --> Strategies : Uses
-    Repositories --> Database_Context : Depends on
-    UnitOfWork --> Repositories : Manages
-    UnitOfWork --> Database_Context : Uses session
-}
-
-Data_Access_Layer --> Domain_Layer : Implements interfaces\nDepends on entities
 @enduml
 
 @startuml use_case_layer
-package "Use Case Layer" {
+component use_case_layer {
 
     abstract class BaseService {
         -_uow: UnitOfWork
@@ -268,69 +293,71 @@ package "Use Case Layer" {
     }
 }
 
-component "Domain Layer" {
-    object Entities
-    object Repository_Interfaces
+component domain_layer {
+    object entities
+    object repository_interfaces
 }
 
-component "Data Access Layer" {
+component data_access_layer {
     class UnitOfWork
-    package Repositories {}
-    package Database_Context {}
+    package repositories {}
+    package database_context {
+        class SqlAlchemyDbContext
+    }
 }
-component "Application_Layer" {
-    object Controllers
-    object Mappers
+component application_layer {
+    object controllers
+    object mappers
     object DTOs
-    component Middleware {
+    component middleware {
         class AuthMiddleware
         class LoggingMiddleware
     }
 }
 
-component Cache_Layer {
+component cache_layer {
 }
 
 
 ' Relationships
-Controllers --> BaseService
-Controllers --> Mappers
+controllers --> BaseService
+controllers --> mappers
 
 UserService --> UnitOfWork
 MatchService --> UnitOfWork
 ReportAndBlockService --> UnitOfWork
 SwipeService --> UnitOfWork
-MatchService --> Cache_Layer
+MatchService --> cache_layer
 
-Mappers --> Entities
-Mappers --> DTOs
+mappers --> entities
+mappers --> DTOs
 
-AuthMiddleware --> Controllers
-LoggingMiddleware --> Controllers
+AuthMiddleware --> controllers
+LoggingMiddleware --> controllers
 
-UnitOfWork --> Database_Context
-UnitOfWork --> Repositories
+UnitOfWork --> database_context
+UnitOfWork --> repositories
 
-Repositories ..|> Repository_Interfaces
-Repository_Interfaces --> Entities
+repositories ..|> repository_interfaces
+repository_interfaces --> entities
 
 ' Notes
-note bottom of UnitOfWork: Singleton pattern để đảm bảo\nchỉ có 1 instance UOW trong toàn ứng dụng
+note bottom of SqlAlchemyDbContext: Singleton pattern để đảm bảo\nchỉ có 1 instance context trong toàn ứng dụng
 note bottom of AuthMiddleware: Sử dụng JWT để xác thực\nvà phân quyền người dùng
 note bottom of UserService: Chứa toàn bộ logic nghiệp vụ\nliên quan đến người dùng
 note bottom of MatchService: Sử dụng cache để tối ưu\nhiệu năng matching algorithm
-note bottom of Controllers: Nhận request HTTP\nvà trả về response JSON
-note bottom of Mappers: Chuyển đổi giữa Entity\nvà DTO để tách biệt các layer
+note bottom of controllers: Nhận request HTTP\nvà trả về response JSON
+note bottom of mappers: Chuyển đổi giữa Entity\nvà DTO để tách biệt các layer
 
 @enduml
 
 @startuml application_layer
 
 ' Định nghĩa package chính cho Application Layer
-package "Application Layer" {
+package application_layer {
 
     ' Package Controllers
-    package "Controllers" {
+    package controllers {
         class UserController {
             + register_user(request: Request): Response
             + verify_email(request: Request): Response
@@ -354,7 +381,7 @@ package "Application Layer" {
     }
 
     ' Package Middleware
-    package "Middleware" {
+    package middlewares {
         class AuthMiddleware {
             + before_request(request: Request): Optional[Response]
             + after_request(response: Response): Response
@@ -367,8 +394,8 @@ package "Application Layer" {
     }
 
     ' Package Logging
-    package "Logging" {
-        class Logger {
+    package PyLog {
+        class PyLogger {
             + log_request(request: Request)
             + log_response(response: Response)
             + log_error(error: Exception)
@@ -376,31 +403,35 @@ package "Application Layer" {
     }
 
     ' Package Routing
-    package "Routing" {
-    class Router {
-        +routes: Dict[str, Route]
-        +prefix: str
-        +middlewares: List[Middleware]
-        +add_route()
-        +group()
-        +handle_request()
-    }
-
+    package routing {
     class Route {
-        +path: str
-        +handler: Callable
-        +methods: List[str]
-        +middlewares: List[Middleware]
+        + path
+        + handler
+        + methods
     }
 
-    Router "1" *-- "many" Route
+    class Router {
+        + prefix
+        + add_route()
+        + group()
+        + generate_routes()
+    }
+
+    class Blueprint <<built-in>> {
+        + add_url_rule()
+    }
+
+    Router "1" o-- "0..*" Route : contains
+    Router "0..1" -- "0..1" Router : parent >
+    Router "1" o-- "0..*" Blueprint : manages
+    Router ..> Blueprint : creates
+
     Router o-- AuthMiddleware
     Router o-- LoggingMiddleware
-    Router --> UserController
     }
 
     ' Package Mappers
-    package "Mappers" {
+    package mappers {
         class UserMapper {
             + to_dto(user: User): UserDTO
             + to_entity(user_dto: UserDTO): User
@@ -424,53 +455,61 @@ package "Application Layer" {
         class SwipeDTO
         class MatchResultDTO
     }
+
+    package containers {
+    }
 }
 
 ' Định nghĩa các mối quan hệ giữa các package trong Application Layer
-Controllers --> Mappers : "Uses"
-Controllers --> DTOs : "Uses"
-Mappers --> DTOs : "Maps to/from"
-Middleware --> Controllers : "Wraps"
-Routing --> Controllers : "Routes to"
-Logging --> Middleware : "Used by"
-Logging --> Controllers : "Used by"
+controllers --> mappers : "Uses"
+controllers --> DTOs : "Uses"
+mappers --> DTOs : "Maps to/from"
+middlewares --> controllers : "Wraps"
+routing --> controllers : "Routes to"
+PyLogger --> middlewares : "Used by"
+PyLogger --> controllers : "Used by"
+controllers ..> containers : "Depends on"
 
 ' Định nghĩa các thành phần bên ngoài (external dependencies)
-component "Domain Layer" {
-    object Entities
+component domain_layer {
+    object entities
 }
 
-component "Use Case Layer" {
-    object Services
+component use_case_layer {
+    object services
 }
 
 ' Mối quan hệ với các layer khác
-Controllers --> Services : "Calls"
-Mappers --> Entities : "Depends on"
+controllers --> services : "Calls"
+mappers --> entities : "Depends on"
 
 ' Ghi chú để giải thích chức năng của từng package
-note bottom of Controllers
+note bottom of controllers
     Xử lý HTTP requests và responses
 end note
 
-note bottom of Middleware
+note bottom of middlewares
     Xử lý authentication, logging, v.v.
 end note
 
-note bottom of Logging
+note bottom of PyLogger
     Ghi log cho toàn bộ ứng dụng
 end note
 
-note bottom of Routing
+note bottom of routing
     Điều hướng requests đến controllers
 end note
 
-note bottom of Mappers
+note bottom of mappers
     Chuyển đổi giữa Entities và DTOs
 end note
 
 note bottom of DTOs
     Data Transfer Objects cho API
+end note
+
+note bottom of containers
+    Package quản lý di cho toàn bộ app
 end note
 
 @enduml

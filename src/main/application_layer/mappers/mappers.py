@@ -1,4 +1,4 @@
-from main.application_layer.dto.auth_dto import SignupRequestDTO, SignupResponseDTO
+from main.application_layer.DTOs.auth_dto import SignupRequestDTO, SignupResponseDTO
 from main import User, Profile
 
 class AuthMapper:

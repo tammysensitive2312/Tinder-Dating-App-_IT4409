@@ -14,7 +14,7 @@ class UnitOfWork:
             # Khởi tạo repository với session hiện tại
             self.users = UserRepository(session)
             self.profiles = ProfileRepository(session)
-            self.swipes = SwipeRepository(session)
+            self.swipes = ProfileRepository(session)
             self.session = session
             yield self  # Trả về UoW để sử dụng trong with block
             session.commit()  # Tự động commit nếu không có exception

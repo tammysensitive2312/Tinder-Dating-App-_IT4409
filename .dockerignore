@@ -1,0 +1,16 @@
+# Loại bỏ các môi trường ảo
+myenv/
+new_venv/
+
+# Loại bỏ các file/thư mục không cần thiết
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.log
+.git/
+.gitignore
+.env
