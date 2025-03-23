@@ -6,7 +6,7 @@ component DatingApp {
     }
 
     component use_case_layer {
-         [Services]
+         [services]
     }
 
     component cache_layer {

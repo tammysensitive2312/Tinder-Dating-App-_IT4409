@@ -1,10 +1,10 @@
-from dotenv import load_dotenv
 from flask import Flask
 from flask_jwt_extended import JWTManager
+
 from application_layer.container import AppContainer
 from application_layer.routing.routes import setup_router
+from main.application_layer.constants import JWT_SECRET_KEY, EXPIRATION_TIME, JWT_ALGORITHM
 
-from main.application_layer.constants import JWT_SECRET_KEY, EXPIRATION_TIME
 
 def run_server_engine():
     app = Flask(__name__)
@@ -12,6 +12,9 @@ def run_server_engine():
 
     app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = EXPIRATION_TIME
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = EXPIRATION_TIME * 5
+    app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
+    app.config["jwt.algorithms.Algorithm"] = JWT_ALGORITHM
     print("JWT_SECRET_KEY trong app.py:", JWT_SECRET_KEY)
 
     jwt = JWTManager(app)

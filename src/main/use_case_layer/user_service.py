@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import bcrypt
+from pydantic.v1 import EmailStr
 
 from main.use_case_layer.base_service import AbstractBaseService
 from flask_jwt_extended import create_access_token, create_refresh_token
@@ -15,7 +16,7 @@ class UserService(AbstractBaseService):
         user = self.uow.user_repository.get_user(user_id)
         return user
 
-    def register_user(self, email: str, password: str, name: str) -> dict[str, str]:
+    def register_user(self, email: EmailStr, password: str, name: str) -> dict[str, str, int]:
         try:
             with self.uow.start() as uow:
                 if uow.users.find_by_email(email):
@@ -28,14 +29,8 @@ class UserService(AbstractBaseService):
                     createdAt=datetime.now()
                 )
 
-                print("line 1 new_user:", new_user.__dict__)
-                print("line 1 new_user.Id:", new_user.Id)
-
                 uow.users.add(new_user)
                 uow.flush()
-
-                print("line 2 new_user:", new_user.__dict__)
-                print("line 2 new_user.Id:", new_user.Id)
 
                 new_profile = Profile(
                     userId=new_user.Id,
@@ -43,7 +38,6 @@ class UserService(AbstractBaseService):
                     createdAt=datetime.now()
                 )
 
-                print("new_profile:", new_profile.__dict__)
                 uow.profiles.add(new_profile)
 
                 identity = {
@@ -64,10 +58,12 @@ class UserService(AbstractBaseService):
             raise e
 
 
-    def __hash_password(self, password: str) -> str:
+    @staticmethod
+    def __hash_password(password: str) -> str:
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
         return hashed.decode('utf-8')
 
-    def __verify_password(self, password: str, hashed_password: str) -> bool:
+    @staticmethod
+    def __verify_password(password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))

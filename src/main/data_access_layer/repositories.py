@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import List
 
+from sqlalchemy import Boolean
 from sqlalchemy.orm import joinedload
 
 from main.data_access_layer.strategies import QueryStrategy
@@ -22,16 +23,18 @@ class AbstractBaseRepository(IRepository, ABC):
         self.session.query(T).get(id)
 
     def get_all(self) -> List[T]:
-        self.session.query(T).all()
+        var = self.session.query(T).all()
+        return var
 
     def add(self, entity: T) -> None:
         self.session.add(entity)
 
-    def update(self, entity: T) -> None:
-        self.session.commit
+    def update(self, entity: T) -> T:
+        var = self.session.commit
+        return var
 
-    def delete(self, entity: T) -> None:
-        self.session.delete(entity)
+    def delete(self, entity: T) -> Boolean:
+        return self.session.delete(entity)
 
     def add_filter_strategy(self, strategy: QueryStrategy):
         self._strategies.append(strategy)

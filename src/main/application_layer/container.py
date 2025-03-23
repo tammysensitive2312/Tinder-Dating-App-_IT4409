@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from main.application_layer.controllers.AuthController import AuthController
+from main.application_layer.controllers.auth_controller import AuthController
 from main.application_layer.middlewares.middleware import LoggingMiddleware, AuthMiddleware
 from main.application_layer.pylog import PyLogger
 from main.data_access_layer import SqlAlchemyDbContext

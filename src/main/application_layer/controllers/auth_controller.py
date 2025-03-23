@@ -1,30 +1,26 @@
-from flask import request, jsonify, Response
+from flask import request
 from pydantic import ValidationError
-from main.use_case_layer.user_service import UserService
+
 from main.application_layer.DTOs.auth_dto import SignupRequestDTO, SignupResponseDTO, ApiResponse, STATUS_CODES
+from main.application_layer.controllers.base import BaseController
 from main.application_layer.pylog import PyLogger as log
+from main.use_case_layer.user_service import UserService
 
 
-class AuthController:
+class AuthController(BaseController):
     def __init__(self, auth_service: UserService, logger: log):
+        super().__init__(logger)
         self.auth_service = auth_service
-        self.log = logger
 
     def register(self):
         try:
             user_data = SignupRequestDTO(**request.json)
-
-            print("user_data.email:", user_data.email)
-            print("user_data.password:", user_data.password)
-            print("user_data.name:", user_data.name)
 
             result = self.auth_service.register_user(
                 email=user_data.email,
                 password=user_data.password,
                 name=user_data.name
             )
-
-            print("result:", result)
 
             response_data = SignupResponseDTO(
                 id=str(result["user_id"]),
@@ -35,7 +31,7 @@ class AuthController:
             api_response = ApiResponse(
                 status_code="1000",
                 message=STATUS_CODES["1000"],
-                data=response_data.dict()
+                data=response_data.model_dump()
             )
 
             return api_response.to_json(), 201
