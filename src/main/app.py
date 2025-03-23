@@ -1,9 +1,9 @@
 from flask import Flask
 from flask_jwt_extended import JWTManager
 
-from application_layer.container import AppContainer
-from application_layer.routing.routes import setup_router
-from main.application_layer.constants import JWT_SECRET_KEY, EXPIRATION_TIME, JWT_ALGORITHM
+from .application_layer.container import AppContainer
+from .application_layer.routing.routes import setup_router
+from .application_layer.constants import JWT_SECRET_KEY, EXPIRATION_TIME, JWT_ALGORITHM
 
 
 def run_server_engine():

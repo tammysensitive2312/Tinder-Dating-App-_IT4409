@@ -41,26 +41,20 @@ class Router:
 
     def add_route(self, path: str, handler: Callable, methods: List[str], middlewares: List[Callable] = None):
         """Thêm route vào router."""
-        # Đảm bảo path bắt đầu bằng /
         if not path.startswith('/'):
             path = '/' + path
 
-        # Tính toán đường dẫn đầy đủ
         full_prefix = self.get_full_prefix()
         full_path = f"{full_prefix}{path}".replace("//", "/")
 
-        # Đảm bảo đường dẫn đầy đủ bắt đầu bằng /
         if not full_path.startswith('/'):
             full_path = '/' + full_path
 
-        # Thêm route vào router gốc
         combined_middlewares = self.middlewares + (middlewares or [])
         if self.parent is None:
-            # Đây là router gốc, lưu route
             print(f"Registering route: {full_path}")
             self._routes[full_path] = Route(full_path, handler, methods, combined_middlewares)
         else:
-            # Chuyển route lên router gốc
             self.root._routes[full_path] = Route(full_path, handler, methods, combined_middlewares)
 
     def group(self, prefix: str, middlewares: List[Callable] = None) -> 'Router':
@@ -94,7 +88,7 @@ class Router:
     def register_blueprint(self, name: str, blueprint: Blueprint):
         self.blueprints[name] = blueprint
 
-    def _apply_middlewares(self, handler: Callable, middlewares: List[Callable]) -> Callable:
+    def __apply_middlewares(self, handler: Callable, middlewares: List[Callable]) -> Callable:
         """Áp dụng middleware cho handler."""
         for middleware in reversed(middlewares):
             handler = middleware(handler)
@@ -109,12 +103,7 @@ class Router:
             bp_name = f"route_{path.replace('/', '_').lstrip('_')}"
             bp = Blueprint(bp_name, __name__)
 
-            wrapped_handler = self._apply_middlewares(
-                route.handler,
-                route.middlewares
-            )
-
-            print(f"Adding URL rule: {path} with methods {route.methods}")
+            wrapped_handler = self.__apply_middlewares(route.handler, route.middlewares)
 
             bp.add_url_rule(
                 path,

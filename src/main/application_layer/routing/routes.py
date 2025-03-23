@@ -1,4 +1,5 @@
 from main.application_layer.routing.router import Router
+from main.application_layer.pylog import PyLogger as log
 
 
 def setup_router(app, container):
@@ -13,11 +14,6 @@ def setup_router(app, container):
     # not_auth_group.post('/refresh-token', container.controllers.auth_controller().refresh_token)
     # not_auth_group.post('/reset-password', container.controllers.auth_controller().reset_password)
     # not_auth_group.put('/reset-password', container.controllers.auth_controller().reset_password)
-
-    blueprints = router.generate_routes()
-    print("Generated blueprints:")
-    for bp in blueprints:
-        print(f"Blueprint: {bp.name}, Routes: {bp.url_prefix}")
 
     for bp in router.generate_routes():
         app.register_blueprint(bp)
