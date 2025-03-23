@@ -41,3 +41,17 @@ class SignupResponseDTO(BaseModel):
     id: str
     access_token: str
     refresh_token: str
+
+class LoginRequestDTO(BaseModel):
+    email: EmailStr
+    password: constr(min_length=8)
+
+class ResetPasswordRequestDTO(BaseModel):
+    email: EmailStr
+    new_password: constr(min_length=8)
+    otp: constr(min_length=6, max_length=6)
+
+class ChangePasswordRequestDTO(BaseModel):
+    email: EmailStr
+    old_password: constr(min_length=8)
+    new_password: constr(min_length=8)

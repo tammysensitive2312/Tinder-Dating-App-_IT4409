@@ -248,7 +248,8 @@ Nếu bạn cần thêm thông tin hoặc chỉnh sửa, hãy cho tôi biết!
 | **Thứ tự** | **Trường dữ liệu** | **Kiểu dữ liệu** | **Bắt buộc** | **Mô tả**                                       |
 |------------|--------------------|------------------|--------------|-------------------------------------------------|
 | 1          | `email`            | `string`         | Có           | email của người dùng.                           |
-| 2          | `password`         | `string`         | Có           | Mật khẩu mới của người dùng, tối thiểu 8 ký tự. |
+| 2          | `old_password`     | `string`         | Có           | Mật khẩu cũ của người dùng, tối thiểu 8 ký tự.  |
+| 3          | `new_password`     | `string`         | Có           | Mật khẩu mới của người dùng, tối thiểu 8 ký tự. |
 
 **Output:**
 

@@ -11,3 +11,4 @@ PyJWT~=2.6.0
 pydantic
 pydantic[email]
 bcrypt
+pyotp

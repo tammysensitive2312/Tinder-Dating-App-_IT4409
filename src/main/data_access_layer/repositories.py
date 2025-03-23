@@ -11,30 +11,30 @@ from main.domain_layer import User, Profile, Swipe
 
 
 class AbstractBaseRepository(IRepository, ABC):
+    model = None
 
     def __init__(self, session):
         self.session = session
         self._strategies = []
 
     def get_base_query(self):
-        return self.session.query(T)
+        return self.session.query(self.model)
 
     def get_by_id(self, id: int) -> T:
-        self.session.query(T).get(id)
+        return self.session.query(self.model).get(id)
 
     def get_all(self) -> List[T]:
-        var = self.session.query(T).all()
-        return var
+        return self.session.query(self.model).all()
 
     def add(self, entity: T) -> None:
         self.session.add(entity)
 
-    def update(self, entity: T) -> T:
-        var = self.session.commit
-        return var
+    def update(self, entity: T) -> None:
+        self.session.commit()
 
-    def delete(self, entity: T) -> Boolean:
-        return self.session.delete(entity)
+    def delete(self, entity: T) -> None:
+        self.session.delete(entity)
+        self.session.commit()
 
     def add_filter_strategy(self, strategy: QueryStrategy):
         self._strategies.append(strategy)
@@ -45,6 +45,7 @@ class AbstractBaseRepository(IRepository, ABC):
         return query
 
 class UserRepository(AbstractBaseRepository, IUserRepository):
+    model = User
 
     def find_by_email(self, email: str) -> User:
         return self.session.query(User).filter(User.email == email).first()
@@ -61,6 +62,7 @@ class UserRepository(AbstractBaseRepository, IUserRepository):
             first()
 
 class ProfileRepository(AbstractBaseRepository, IProfileRepository):
+    model = Profile
 
     def update_bio(self, user_id: int, new_bio: str):
         profile = self.session.query(Profile).\
@@ -77,6 +79,7 @@ class ProfileRepository(AbstractBaseRepository, IProfileRepository):
             first()
 
 class SwipeRepository(AbstractBaseRepository, ISwipeRepository):
+    model = Swipe
 
     def get_recent_swipes(self, user_id: int, days: int) -> list[Swipe]:
         from datetime import datetime, timedelta
