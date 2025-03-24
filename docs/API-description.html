@@ -1,4 +1,6 @@
-<html><head><style><style>
+<html>
+<head>
+    <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -65,7 +67,10 @@
         .section table {
             margin-top: 10px;
         }
-    </style></style></head><body><h1 id="thi-t-k-api-cho-tinder">Thiết kế API cho Tinder</h1>
+    </style>
+</head>
+<body>
+<p>`# Thiết kế API cho Tinder</p>
 <h2 id="m-c-l-c">Mục lục</h2>
 <ul>
 <li><a href="#i-các-api-chính-có-thể-có">I. Các API chính có thể có</a><ul>
@@ -94,7 +99,6 @@
 <li>Authentication &amp; Authorization API</li>
 <li>Đăng ký/ Tạo tài khoản</li>
 <li>POST /auth/signup: Tạo tài khoản bằng email/SĐT/mạng xã hội</li>
-<li>POST /auth/oauth/{provide}: Đăng nhập bằng bên thứ 3 tin cậy</li>
 <li>Xác thực</li>
 <li>POST /auth/login: Đăng nhập bằng email/mật khẩu</li>
 <li>POST /auth/refresh-token: làm mới token (với jwt)</li>
@@ -102,6 +106,8 @@
 <li>Quên mật khẩu</li>
 <li>POST /auth/reset-password: Yêu cầu đặt lại mật khẩu</li>
 <li>PUT /auth/reset-password: Xác nhận mã OTP và đổi mật khẩu</li>
+<li>Đổi mật khẩu</li>
+<li>POST /auth/change-password: Yêu cầu đổi mật khẩu </li>
 <li>Profile Management API</li>
 <li>Thông tin cá nhân</li>
 <li>GET /profile/me: Lấy thông tin về profile của người dùng</li>
@@ -164,6 +170,159 @@
 </ol>
 <hr>
 <h2 id="ii-m-t-chi-ti-t-api">II. Mô tả chi tiết API</h2>
+<h3 id="t-i-li-u-m-l-i-v-th-ng-i-p">Tài Liệu Mã Lỗi và Thông Điệp</h3>
+<p>Tài liệu này cung cấp danh sách chi tiết các mã lỗi, thông điệp tương ứng và ghi chú bằng tiếng Việt để hỗ trợ việc hiểu và triển khai trong hệ thống.</p>
+<h4 id="b-ng-m-l-i">Bảng Mã Lỗi</h4>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Message</th>
+<th>Ghi Chú (Tiếng Việt)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1000</td>
+<td>OK</td>
+<td>Thao tác thành công</td>
+</tr>
+<tr>
+<td>9992</td>
+<td>Post is not existed</td>
+<td>Bài viết không tồn tại</td>
+</tr>
+<tr>
+<td>9993</td>
+<td>Code verify is incorrect</td>
+<td>Mã xác thực không đúng</td>
+</tr>
+<tr>
+<td>9994</td>
+<td>No Data or end of list data</td>
+<td>Không có dữ liệu hoặc không còn dữ liệu</td>
+</tr>
+<tr>
+<td>9995</td>
+<td>User is not validated</td>
+<td>Không có người dùng này</td>
+</tr>
+<tr>
+<td>9996</td>
+<td>User existed</td>
+<td>Người dùng đã tồn tại</td>
+</tr>
+<tr>
+<td>9997</td>
+<td>Method is invalid</td>
+<td>Phương thức không đúng</td>
+</tr>
+<tr>
+<td>9998</td>
+<td>Token is invalid</td>
+<td>Sai token</td>
+</tr>
+<tr>
+<td>9999</td>
+<td>Exception error</td>
+<td>Lỗi exception</td>
+</tr>
+<tr>
+<td>1001</td>
+<td>Can not connect to DB</td>
+<td>Lỗi mất kết nối DB hoặc thực thi câu SQL</td>
+</tr>
+<tr>
+<td>1002</td>
+<td>Parameter is not enough</td>
+<td>Số lượng tham số không đầy đủ</td>
+</tr>
+<tr>
+<td>1003</td>
+<td>Parameter type is invalid</td>
+<td>Kiểu tham số không dùng được</td>
+</tr>
+<tr>
+<td>1004</td>
+<td>Parameter value is invalid</td>
+<td>Giá trị của tham số không hợp lệ</td>
+</tr>
+<tr>
+<td>1005</td>
+<td>Unknown error</td>
+<td>Lỗi không xác định</td>
+</tr>
+<tr>
+<td>1006</td>
+<td>File size is too big</td>
+<td>Kích cỡ file vượt mức cho phép</td>
+</tr>
+<tr>
+<td>1007</td>
+<td>Upload File Failed!</td>
+<td>Tải file lên thất bại</td>
+</tr>
+<tr>
+<td>1008</td>
+<td>Maximum number of images</td>
+<td>Số lượng hình ảnh vượt quá quy định</td>
+</tr>
+<tr>
+<td>1009</td>
+<td>Not access</td>
+<td>Không có quyền truy cập tài nguyên</td>
+</tr>
+<tr>
+<td>1010</td>
+<td>Action has been done previously by this user</td>
+<td>Hành động đã được người dùng thực hiện trước đó</td>
+</tr>
+</tbody>
+</table>
+<h4 id="ghi-ch-b-sung">Ghi Chú Bổ Sung</h4>
+<p>Dưới đây là giải thích chi tiết về ý nghĩa của từng nhóm mã lỗi:</p>
+<ul>
+<li><strong>Mã 1000</strong>: Biểu thị thao tác thành công, không có lỗi xảy ra.</li>
+<li><strong>Mã 9992–9999</strong>: Đại diện cho các lỗi liên quan đến xác thực và sự tồn tại, bao gồm:<ul>
+<li>Bài viết không tồn tại (9992)</li>
+<li>Mã xác thực sai (9993)</li>
+<li>Không còn dữ liệu (9994)</li>
+<li>Người dùng không hợp lệ hoặc đã tồn tại (9995, 9996)</li>
+<li>Phương thức hoặc token không đúng (9997, 9998)</li>
+<li>Lỗi ngoại lệ (9999)</li>
+</ul>
+</li>
+<li><strong>Mã 1001–1005</strong>: Liên quan đến các vấn đề về cơ sở dữ liệu và tham số:<ul>
+<li>Lỗi kết nối hoặc thực thi SQL (1001)</li>
+<li>Tham số không đủ hoặc không hợp lệ (1002, 1003, 1004)</li>
+<li>Lỗi không xác định (1005)</li>
+</ul>
+</li>
+<li><strong>Mã 1006–1008</strong>: Liên quan đến vấn đề tải file:<ul>
+<li>File vượt kích thước cho phép (1006)</li>
+<li>Tải file thất bại (1007)</li>
+<li>Vượt quá số lượng hình ảnh tối đa (1008)</li>
+</ul>
+</li>
+<li><strong>Mã 1009–1010</strong>: Liên quan đến quyền truy cập và hành động lặp lại:<ul>
+<li>Không có quyền truy cập (1009)</li>
+<li>Hành động đã được thực hiện trước đó (1010)</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Với các API với lượng data được sản sinh cực lớn vẫn sẽ có phân trang, <br>
+nhưng ở tài liệu này em sẽ tập trung vào mô tả trường dữ liệu chính của app, <br>
+việc phân trang và trả về tình trạng của response sẽ do người code quyết định</li>
+</ul>
+<h2 id="h-ng-d-n-s-d-ng">Hướng Dẫn Sử Dụng</h2>
+<p>Bảng mã lỗi này có thể được sử dụng để:</p>
+<ul>
+<li>Xử lý lỗi trong ứng dụng.</li>
+<li>Cung cấp phản hồi phù hợp cho người dùng dựa trên mã lỗi và thông điệp.</li>
+<li>Tích hợp vào tài liệu dự án để các nhà phát triển tham khảo.</li>
+</ul>
+<p>Nếu bạn cần thêm thông tin hoặc chỉnh sửa, hãy cho tôi biết!</p>
 <h3 id="1-authentication-authorization-api">1. Authentication &amp; Authorization API</h3>
 <table>
 <thead>
@@ -181,28 +340,28 @@
 <td>POST</td>
 <td><code>/auth/signup</code></td>
 <td><code>{ email: string, password: string, name: string }</code></td>
-<td><code>{ id: string, token: string }</code></td>
-</tr>
-<tr>
-<td>Đăng nhập bằng OAuth</td>
-<td>POST</td>
-<td><code>/auth/oauth/{provider}</code></td>
-<td><code>{ access_token: string }</code></td>
-<td><code>{ id: string, token: string }</code></td>
+<td><code>{ id: string, access_token: string, refresh_token: string }</code></td>
 </tr>
 <tr>
 <td>Đăng nhập bằng email</td>
 <td>POST</td>
 <td><code>/auth/login</code></td>
 <td><code>{ email: string, password: string }</code></td>
-<td><code>{ token: string, refresh_token: string }</code></td>
+<td><code>{ access_token: string, refresh_token: string }</code></td>
 </tr>
 <tr>
 <td>Làm mới token</td>
 <td>POST</td>
 <td><code>/auth/refresh-token</code></td>
-<td>Header: <code>refresh_token: string</code></td>
-<td><code>{ new_token: string }</code></td>
+<td><code>{ refresh_token: string }</code></td>
+<td><code>{ access_token: string }</code></td>
+</tr>
+<tr>
+<td>Đăng xuất</td>
+<td>POST</td>
+<td><code>/auth/logout</code></td>
+<td>Header: <code>Authorization: Bearer &lt;token&gt;</code></td>
+<td><code>{ status: &quot;success&quot; }</code></td>
 </tr>
 <tr>
 <td>Yêu cầu đặt lại mật khẩu</td>
@@ -216,6 +375,13 @@
 <td>PUT</td>
 <td><code>/auth/reset-password</code></td>
 <td><code>{ otp: string, new_password: string }</code></td>
+<td><code>{ status: &quot;success&quot; }</code></td>
+</tr>
+<tr>
+<td>Yêu cầu thay đổi mật khẩu</td>
+<td>POST</td>
+<td><code>/auth/change-password</code></td>
+<td><code>{ email: string, password: string }</code></td>
 <td><code>{ status: &quot;success&quot; }</code></td>
 </tr>
 </tbody>
@@ -282,54 +448,7 @@
 </tbody>
 </table>
 <hr>
-<h4 id="2-ng-nh-p-b-ng-oauth-post-auth-oauth-provider-">2. Đăng nhập bằng OAuth (<code>POST /auth/oauth/{provider}</code>)</h4>
-<table>
-<thead>
-<tr>
-<th><strong>Thứ tự</strong></th>
-<th><strong>Trường dữ liệu</strong></th>
-<th><strong>Kiểu dữ liệu</strong></th>
-<th><strong>Bắt buộc</strong></th>
-<th><strong>Mô tả</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td><code>access_token</code></td>
-<td><code>string</code></td>
-<td>Có</td>
-<td>Access token từ nhà cung cấp OAuth (Google, Facebook, Apple).</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Output:</strong></p>
-<table>
-<thead>
-<tr>
-<th><strong>Thứ tự</strong></th>
-<th><strong>Trường dữ liệu</strong></th>
-<th><strong>Kiểu dữ liệu</strong></th>
-<th><strong>Mô tả</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td><code>id</code></td>
-<td><code>string</code></td>
-<td>ID duy nhất của người dùng trong hệ thống.</td>
-</tr>
-<tr>
-<td>2</td>
-<td><code>token</code></td>
-<td><code>string</code></td>
-<td>JWT token dùng để xác thực các request tiếp theo.</td>
-</tr>
-</tbody>
-</table>
-<hr>
-<h4 id="3-ng-nh-p-b-ng-email-post-auth-login-">3. Đăng nhập bằng email (<code>POST /auth/login</code>)</h4>
+<h4 id="2-ng-nh-p-b-ng-email-post-auth-login-">2. Đăng nhập bằng email (<code>POST /auth/login</code>)</h4>
 <table>
 <thead>
 <tr>
@@ -383,7 +502,7 @@
 </tbody>
 </table>
 <hr>
-<h4 id="4-l-m-m-i-token-post-auth-refresh-token-">4. Làm mới token (<code>POST /auth/refresh-token</code>)</h4>
+<h4 id="3-l-m-m-i-token-post-auth-refresh-token-">3. Làm mới token (<code>POST /auth/refresh-token</code>)</h4>
 <table>
 <thead>
 <tr>
@@ -417,14 +536,14 @@
 <tbody>
 <tr>
 <td>1</td>
-<td><code>new_token</code></td>
+<td><code>refresh_token</code></td>
 <td><code>string</code></td>
 <td>JWT token mới dùng để xác thực các request tiếp theo.</td>
 </tr>
 </tbody>
 </table>
 <hr>
-<h4 id="5-y-u-c-u-t-l-i-m-t-kh-u-post-auth-reset-password-">5. Yêu cầu đặt lại mật khẩu (<code>POST /auth/reset-password</code>)</h4>
+<h4 id="4-y-u-c-u-t-l-i-m-t-kh-u-post-auth-reset-password-">4. Yêu cầu đặt lại mật khẩu (<code>POST /auth/reset-password</code>)</h4>
 <table>
 <thead>
 <tr>
@@ -465,7 +584,7 @@
 </tbody>
 </table>
 <hr>
-<h4 id="6-x-c-nh-n-t-l-i-m-t-kh-u-put-auth-reset-password-">6. Xác nhận đặt lại mật khẩu (<code>PUT /auth/reset-password</code>)</h4>
+<h4 id="5-x-c-nh-n-t-l-i-m-t-kh-u-put-auth-reset-password-">5. Xác nhận đặt lại mật khẩu (<code>PUT /auth/reset-password</code>)</h4>
 <table>
 <thead>
 <tr>
@@ -513,6 +632,102 @@
 </tbody>
 </table>
 <hr>
+<h4 id="6-y-u-c-u-thay-i-m-t-kh-u-post-auth-change-password-">6. Yêu cầu thay đổi mật khẩu (<code>POST /auth/change-password</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>email</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>email của người dùng.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>old_password</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Mật khẩu cũ của người dùng, tối thiểu 8 ký tự.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>new_password</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Mật khẩu mới của người dùng, tối thiểu 8 ký tự.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>status</code></td>
+<td><code>string</code></td>
+<td>Trạng thái của request, giá trị là <code>&quot;success&quot;</code> nếu thành công.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="7-ng-xu-t-post-auth-logout-">7. Đăng xuất (<code>POST /auth/logout</code>)</h4>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Header: <code>Authorization: Bearer &lt;token&gt;</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>access_token để truy cập vào tài nguyên</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>status</code></td>
+<td><code>string</code></td>
+<td>Trạng thái của request, giá trị là <code>&quot;success&quot;</code> nếu thành công.</td>
+</tr>
+</tbody>
+</table>
+<hr>
 <h3 id="2-profile-management-api">2. Profile Management API</h3>
 <table>
 <thead>
@@ -537,7 +752,7 @@
 <td>PUT</td>
 <td><code>/profile/me</code></td>
 <td><code>{ bio: string, gender: string, job: string }</code></td>
-<td><code>{ updated_profile: object }</code></td>
+<td><code>{ bio: string, gender: string, job: string }</code></td>
 </tr>
 <tr>
 <td>Tải lên ảnh đại diện</td>
@@ -547,11 +762,11 @@
 <td><code>{ photo_id: string, url: string }</code></td>
 </tr>
 <tr>
-<td>Cập nhật thiết lập tìm kiếm</td>
+<td>Cập nhật thiết lập tìm kiếm<br/>người dùng theo tiêu chí mong muốn</td>
 <td>PUT</td>
 <td><code>/profile/preferences</code></td>
-<td><code>{ max_age: number, max_distance: number }</code></td>
-<td><code>{ updated_prefs: object }</code></td>
+<td><code>{ max_age: number, min_age: number, max_distance: number, gender: string }</code></td>
+<td><code>{ status: success }</code></td>
 </tr>
 </tbody>
 </table>
@@ -570,7 +785,7 @@
 <tbody>
 <tr>
 <td>1</td>
-<td><code>token</code></td>
+<td><code>access_token</code></td>
 <td><code>string</code></td>
 <td>Có</td>
 <td>JWT token dùng để xác thực người dùng.</td>
@@ -603,14 +818,50 @@
 <tr>
 <td>3</td>
 <td><code>photos</code></td>
-<td><code>[string]</code></td>
-<td>Danh sách URL ảnh đại diện.</td>
+<td><code>[json]</code></td>
+<td>Danh sách các đối tượng ảnh đại diện.</td>
+</tr>
+<tr>
+<td></td>
+<td><code>photo_id</code></td>
+<td><code>string</code></td>
+<td>id của ảnh</td>
+</tr>
+<tr>
+<td></td>
+<td><code>url</code></td>
+<td><code>string</code></td>
+<td>đường dẫn của ảnh để trên server chứa image</td>
 </tr>
 <tr>
 <td>4</td>
 <td><code>preferences</code></td>
-<td><code>object</code></td>
+<td><code>json</code></td>
 <td>Thiết lập tìm kiếm (tuổi, khoảng cách, giới tính).</td>
+</tr>
+<tr>
+<td></td>
+<td><code>max_age</code></td>
+<td><code>string</code></td>
+<td>Tuổi tối đa cho đối tượng tìm kiếm</td>
+</tr>
+<tr>
+<td></td>
+<td><code>min_age</code></td>
+<td><code>string</code></td>
+<td>Tuổi tối thiểu cho đối tượng tìm kiếm</td>
+</tr>
+<tr>
+<td></td>
+<td><code>max_distance</code></td>
+<td><code>string</code></td>
+<td>Khoảng cách tối đa cho các đối tượng tìm kiếm</td>
+</tr>
+<tr>
+<td></td>
+<td><code>gender</code></td>
+<td><code>string</code></td>
+<td>Giới tính</td>
 </tr>
 </tbody>
 </table>
@@ -651,6 +902,7 @@
 </tbody>
 </table>
 <p><strong>Output:</strong></p>
+<p>Các trường dữ liệu đã cập nhật</p>
 <table>
 <thead>
 <tr>
@@ -663,9 +915,21 @@
 <tbody>
 <tr>
 <td>1</td>
-<td><code>updated_profile</code></td>
-<td><code>object</code></td>
-<td>Thông tin profile đã được cập nhật.</td>
+<td><code>bio</code></td>
+<td><code>string</code></td>
+<td>Mô tả ngắn về bản thân.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>gender</code></td>
+<td><code>string</code></td>
+<td>Giới tính (ví dụ: &quot;male&quot;, &quot;female&quot;, &quot;other&quot;).</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>job</code></td>
+<td><code>string</code></td>
+<td>Nghề nghiệp của người dùng.</td>
 </tr>
 </tbody>
 </table>
@@ -684,10 +948,10 @@
 <tbody>
 <tr>
 <td>1</td>
-<td><code>image</code></td>
-<td><code>file</code></td>
+<td><code>images</code></td>
+<td><code>file[]</code></td>
 <td>Có</td>
-<td>File ảnh đại diện (định dạng JPEG/PNG).</td>
+<td>Danh sách các file ảnh (định dạng JPEG/PNG), tối đa 4 ảnh mỗi lần tải lên.</td>
 </tr>
 </tbody>
 </table>
@@ -738,10 +1002,24 @@
 </tr>
 <tr>
 <td>2</td>
+<td><code>min_age</code></td>
+<td><code>number</code></td>
+<td>Không</td>
+<td>Tuổi tối thiểu của người dùng muốn tìm kiếm.</td>
+</tr>
+<tr>
+<td>3</td>
 <td><code>max_distance</code></td>
 <td><code>number</code></td>
 <td>Không</td>
 <td>Khoảng cách tối đa (đơn vị: km).</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>gender: string</code></td>
+<td><code>string</code></td>
+<td>Không</td>
+<td>Giới tính của đối tượng</td>
 </tr>
 </tbody>
 </table>
@@ -758,9 +1036,9 @@
 <tbody>
 <tr>
 <td>1</td>
-<td><code>updated_prefs</code></td>
-<td><code>object</code></td>
-<td>Thiết lập tìm kiếm đã được cập nhật.</td>
+<td><code>status</code></td>
+<td><code>success</code></td>
+<td>Trạng thái của request, giá trị là <code>&quot;success&quot;</code> nếu thành công.</td>
 </tr>
 </tbody>
 </table>
@@ -781,22 +1059,22 @@
 <td>Lấy danh sách đề xuất</td>
 <td>GET</td>
 <td><code>/recommendations</code></td>
-<td>Header: <code>token: string</code></td>
+<td>Header: <code>Authorization: Bearer &lt;token&gt;</code> (token: string)</td>
 <td><code>{ users: [{ id: string, name: string, photos: [string] }] }</code></td>
 </tr>
 <tr>
 <td>Swipe phải (thích)</td>
 <td>POST</td>
 <td><code>/swipe/{userId}/like</code></td>
-<td>Header: <code>token: string</code></td>
+<td>Header: <code>Authorization: Bearer &lt;token&gt;</code> (token: string)</td>
 <td><code>{ is_match: boolean, match_id: string (nếu có) }</code></td>
 </tr>
 <tr>
 <td>Lấy danh sách match</td>
 <td>GET</td>
 <td><code>/matches</code></td>
-<td>Header: <code>token: string</code></td>
-<td><code>{ matches: [{ match_id: string, user: object }] }</code></td>
+<td>Header: <code>Authorization: Bearer &lt;token&gt;</code> (token: string)</td>
+<td><code>{ matches: [{ match_id: string, user: { id: number, photo_url: string } }] }</code></td>
 </tr>
 </tbody>
 </table>
@@ -836,23 +1114,23 @@
 <tr>
 <td>1</td>
 <td><code>users</code></td>
-<td><code>[object]</code></td>
+<td><code>[json]</code></td>
 <td>Danh sách người dùng đề xuất.</td>
 </tr>
 <tr>
-<td>1.1</td>
+<td></td>
 <td><code>id</code></td>
 <td><code>string</code></td>
 <td>ID của người dùng.</td>
 </tr>
 <tr>
-<td>1.2</td>
+<td></td>
 <td><code>name</code></td>
 <td><code>string</code></td>
 <td>Tên của người dùng.</td>
 </tr>
 <tr>
-<td>1.3</td>
+<td></td>
 <td><code>photos</code></td>
 <td><code>[string]</code></td>
 <td>Danh sách URL ảnh đại diện.</td>
@@ -942,7 +1220,89 @@
 <tr>
 <td>1</td>
 <td><code>matches</code></td>
-<td><code>[object]</code></td>
+<td><code>[json]</code></td>
+<td>Danh sách các match.</td>
+</tr>
+<tr>
+<td></td>
+<td><code>match_id</code></td>
+<td><code>string</code></td>
+<td>ID của match.</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td><code>user</code></td>
+<td><code>json</code></td>
+<td>Thông tin người dùng đã match.</td>
+</tr>
+<tr>
+<td></td>
+<td><code>id</code></td>
+<td><code>number</code></td>
+<td>id người dùng đã match</td>
+</tr>
+<tr>
+<td></td>
+<td><code>photo_url</code></td>
+<td><code>string</code></td>
+<td>Một ảnh duy nhất được ưu tiên</td>
+</tr>
+</tbody>
+</table>
+<h3 id="thi-t-k-m-i-cho-api-l-y-danh-s-ch-match-get-matches-theo-t-ng-th-y-th-nh-g-i-">Thiết kế mới cho API Lấy danh sách match (<code>GET /matches</code>) theo ý tưởng thầy Thành gợi ý</h3>
+<h4 id="input-">Input:</h4>
+<p>API sẽ sử dụng <strong>cursor-based pagination</strong> với các tham số:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Bắt buộc</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>token</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>JWT token xác thực qua header <code>Authorization</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>cursor</code></td>
+<td><code>string</code></td>
+<td>Không</td>
+<td>Vị trí bắt đầu trang tiếp theo (e.g., <code>match_id</code> cuối trang trước)</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>limit</code></td>
+<td><code>integer</code></td>
+<td>Không</td>
+<td>Số match tối đa/request (mặc định: 20)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output:</strong></p>
+<p><em>Output được cải tiến để bao gồm danh sách match, thông tin cursor cho trang tiếp theo, <br>
+và một trường để thông báo nếu có match mới được thêm vào đầu danh sách.</em></p>
+<table>
+<thead>
+<tr>
+<th><strong>Thứ tự</strong></th>
+<th><strong>Trường dữ liệu</strong></th>
+<th><strong>Kiểu dữ liệu</strong></th>
+<th><strong>Mô tả</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>matches</code></td>
+<td><code>[json]</code></td>
 <td>Danh sách các match.</td>
 </tr>
 <tr>
@@ -954,13 +1314,93 @@
 <tr>
 <td>1.2</td>
 <td><code>user</code></td>
-<td><code>object</code></td>
+<td><code>json</code></td>
 <td>Thông tin người dùng đã match.</td>
+</tr>
+<tr>
+<td>1.2.1</td>
+<td><code>id</code></td>
+<td><code>number</code></td>
+<td>ID người dùng đã match.</td>
+</tr>
+<tr>
+<td>1.2.2</td>
+<td><code>photo_url</code></td>
+<td><code>string</code></td>
+<td>Một ảnh duy nhất được ưu tiên.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>next_cursor</code></td>
+<td><code>string</code></td>
+<td>Cursor cho trang tiếp theo (ví dụ: <code>match_id</code> của match cuối cùng trong danh sách). Nếu không còn dữ liệu, trả về <code>null</code>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>has_new_matches</code></td>
+<td><code>boolean</code></td>
+<td><code>true</code> nếu có match mới được thêm vào đầu danh sách kể từ lần request cuối, <code>false</code> nếu không.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Ví dụ request:</strong></p>
+<pre><code class="lang-http">GET /matches?<span class="hljs-built_in">limit</span>=20
+GET /matches?cursor=match_123&amp;<span class="hljs-built_in">limit</span>=20
+</code></pre>
+<pre><code class="lang-json">{
+    <span class="hljs-attr">"matches"</span>: [
+        {
+            <span class="hljs-attr">"match_id"</span>: <span class="hljs-string">"match_123"</span>,
+            <span class="hljs-attr">"user"</span>: {
+                <span class="hljs-attr">"id"</span>: <span class="hljs-number">456</span>,
+                <span class="hljs-attr">"photo_url"</span>: <span class="hljs-string">"https://example.com/photos/user_456.jpg"</span>
+            }
+        }
+    ],
+    <span class="hljs-attr">"next_cursor"</span>: <span class="hljs-string">"match_124"</span>, 
+    <span class="hljs-attr">"has_new_matches"</span>: <span class="hljs-literal">true</span>
+}
+</code></pre>
+<h5 id="l-do-thay-i">Lý do thay đổi</h5>
+<h6 id="cursor-based-pagination">Cursor-based pagination</h6>
+<ul>
+<li>Xử lý hiệu quả với dataset lớn</li>
+<li>Đảm bảo tính nhất quán khi có data mới</li>
+</ul>
+<h6 id="next_cursor">next_cursor</h6>
+<ul>
+<li>Giúp client lấy trang tiếp theo chính xác</li>
+<li>Tránh duplicate/bỏ sót data</li>
+</ul>
+<h6 id="has_new_matches">has_new_matches</h6>
+<ul>
+<li>Thông báo cho client về match mới</li>
+<li>Client có thể hiển thị badge/thông báo</li>
+</ul>
 <hr>
 <h3 id="chat-api-websocket-">Chat API (WebSocket)</h3>
+<ul>
+<li><p><strong>Việc gửi tin nhắn không cần thêm <code>receiver_id</code> trong hệ thống match-based</strong>:</p>
+<ul>
+<li><code>match_id</code> đã đủ để xác định người nhận trong một cặp match, giúp giảm dư thừa dữ liệu và đảm bảo logic nghiệp vụ của ứng dụng hẹn hò.</li>
+<li>Sử dụng <code>match_id</code> tăng cường bảo mật và quyền riêng tư, đảm bảo chỉ những người đã match mới có thể gửi tin nhắn cho nhau.</li>
+</ul>
+</li>
+<li><p><strong>Các trường như <code>timestamp</code> và <code>sender_id</code> sẽ được xử lý bởi server</strong>:</p>
+<ul>
+<li><code>timestamp</code> sẽ được tạo tự động bởi server (định dạng ISO 8601) để đảm bảo tính nhất quán và tránh vấn đề đồng bộ thời gian từ client.</li>
+<li><code>sender_id</code> sẽ được lấy từ token xác thực (JWT) thay vì yêu cầu client gửi, nhằm tăng bảo mật và tránh giả mạo.</li>
+</ul>
+</li>
+<li><p><strong>Giữ <code>match_id</code> thay vì thay bằng <code>receiver_id</code></strong>:</p>
+<ul>
+<li><code>match_id</code> phù hợp hơn trong hệ thống match-based, giúp xác định chính xác cuộc trò chuyện giữa hai người đã match.</li>
+<li>Thay bằng <code>receiver_id</code> có thể phá logic nghiệp vụ (cho phép gửi tin nhắn đến người chưa match</li>
+</ul>
+</li>
+<li><p><strong>Thầy cho em xin ý kiến về vấn đề này ạ</strong></p>
+</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -1170,7 +1610,7 @@
 <td>Tìm kiếm theo khu vực</td>
 <td>GET</td>
 <td><code>/discovery</code></td>
-<td>Query: <code>radius: number</code></td>
+<td><code>{ lat: number, lng: number, radius: number }</code></td>
 <td><code>{ users: [{ id: string, name: string, photos: [string] }] }</code></td>
 </tr>
 </tbody>
@@ -1243,6 +1683,20 @@
 <td>Có</td>
 <td>Bán kính tìm kiếm (đơn vị: km).</td>
 </tr>
+<tr>
+<td>2</td>
+<td><code>lat</code></td>
+<td><code>number</code></td>
+<td>Có</td>
+<td>Vĩ độ của người dùng.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>lng</code></td>
+<td><code>number</code></td>
+<td>Có</td>
+<td>Kinh độ của người dùng.</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Output:</strong></p>
@@ -1263,19 +1717,19 @@
 <td>Danh sách người dùng trong khu vực.</td>
 </tr>
 <tr>
-<td>1.1</td>
+<td></td>
 <td><code>id</code></td>
 <td><code>string</code></td>
 <td>ID của người dùng.</td>
 </tr>
 <tr>
-<td>1.2</td>
+<td></td>
 <td><code>name</code></td>
 <td><code>string</code></td>
 <td>Tên của người dùng.</td>
 </tr>
 <tr>
-<td>1.3</td>
+<td></td>
 <td><code>photos</code></td>
 <td><code>[string]</code></td>
 <td>Danh sách URL ảnh đại diện.</td>
@@ -1559,7 +2013,7 @@
 </tbody>
 </table>
 <h3 id="chi-ti-t-input-v-output-c-a-admin-api">Chi tiết Input và Output của Admin API</h3>
-<h4 id="1-ban-t-i-kho-n-delete-admin-users-userid-">1. Ban tài khoản (<code>DELETE /admin/users/{userId}</code>)</h4>
+<h4 id="1-ban-t-i-kho-n-put-admin-users-userid-">1. Ban tài khoản (<code>PUT /admin/users/{userId}</code>)</h4>
 <table>
 <thead>
 <tr>
@@ -1573,10 +2027,23 @@
 <tbody>
 <tr>
 <td>1</td>
-<td><code>admin_token</code></td>
+<td>Header <code>admin_token</code></td>
 <td><code>string</code></td>
 <td>Có</td>
 <td>Token quản trị viên để xác thực.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>reason</code></td>
+<td><code>string</code></td>
+<td>Có</td>
+<td>Lý do bị ban</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>banned_user_id</code></td>
+<td><code>number</code></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -1594,7 +2061,7 @@
 <tr>
 <td>1</td>
 <td><code>banned_user_id</code></td>
-<td><code>string</code></td>
+<td><code>number</code></td>
 <td>ID của người dùng đã bị ban.</td>
 </tr>
 </tbody>
@@ -1635,7 +2102,7 @@
 <tr>
 <td>1</td>
 <td><code>reports</code></td>
-<td><code>[object]</code></td>
+<td><code>[json]</code></td>
 <td>Danh sách các báo cáo.</td>
 </tr>
 <tr>
@@ -1758,8 +2225,14 @@
 <tr>
 <td>1</td>
 <td><code>top_tracks</code></td>
-<td><code>[object]</code></td>
+<td><code>[json]</code></td>
 <td>Danh sách bài hát yêu thích.</td>
+</tr>
+<tr>
+<td></td>
+<td><code>song_id</code></td>
+<td><code>string</code></td>
+<td>id bài hát.</td>
 </tr>
 <tr>
 <td>1.1</td>
@@ -1772,6 +2245,7 @@
 <td><code>artist</code></td>
 <td><code>string</code></td>
 <td>Tên nghệ sĩ.</td>
+<td>`</td>
 </tr>
 </tbody>
 </table>

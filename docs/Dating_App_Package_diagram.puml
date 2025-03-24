@@ -431,22 +431,22 @@ package application_layer {
     }
 
     ' Package Mappers
-    package mappers {
-        class UserMapper {
-            + to_dto(user: User): UserDTO
-            + to_entity(user_dto: UserDTO): User
-        }
-
-        class ProfileMapper {
-            + to_dto(profile: Profile): ProfileDTO
-            + to_entity(profile_dto: ProfileDTO): Profile
-        }
-
-        class SwipeMapper {
-            + to_dto(swipe: Swipe): SwipeDTO
-            + to_entity(swipe_dto: SwipeDTO): Swipe
-        }
-    }
+'    package mappers {
+'        class UserMapper {
+'            + to_dto(user: User): UserDTO
+'            + to_entity(user_dto: UserDTO): User
+'        }
+'
+'        class ProfileMapper {
+'            + to_dto(profile: Profile): ProfileDTO
+'            + to_entity(profile_dto: ProfileDTO): Profile
+'        }
+'
+'        class SwipeMapper {
+'            + to_dto(swipe: Swipe): SwipeDTO
+'            + to_entity(swipe_dto: SwipeDTO): Swipe
+'        }
+'    }
 
     ' Package DTOs
     package "DTOs" {
@@ -461,9 +461,9 @@ package application_layer {
 }
 
 ' Định nghĩa các mối quan hệ giữa các package trong Application Layer
-controllers --> mappers : "Uses"
+'controllers --> mappers : "Uses"
 controllers --> DTOs : "Uses"
-mappers --> DTOs : "Maps to/from"
+'mappers --> DTOs : "Maps to/from"
 middlewares --> controllers : "Wraps"
 routing --> controllers : "Routes to"
 PyLogger --> middlewares : "Used by"
@@ -481,7 +481,7 @@ component use_case_layer {
 
 ' Mối quan hệ với các layer khác
 controllers --> services : "Calls"
-mappers --> entities : "Depends on"
+'mappers --> entities : "Depends on"
 
 ' Ghi chú để giải thích chức năng của từng package
 note bottom of controllers
@@ -500,9 +500,9 @@ note bottom of routing
     Điều hướng requests đến controllers
 end note
 
-note bottom of mappers
-    Chuyển đổi giữa Entities và DTOs
-end note
+'note bottom of mappers
+'    Chuyển đổi giữa Entities và DTOs
+'end note
 
 note bottom of DTOs
     Data Transfer Objects cho API

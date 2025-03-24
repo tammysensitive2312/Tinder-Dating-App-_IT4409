@@ -5,21 +5,21 @@
 ### 1.1. Mô hình kiến trúc
 
 Mô hình kiến trúc của Dating App Tinder được thiết kế theo mô hình Client-Server.
-Server được xây dựng với kiến trúc layered architecture, bao gồm các layer: Presentation Layer, Business Layer, Data Access Layer, Domain Layer
+Server được xây dựng với kiến trúc layered architecture, bao gồm các layer: Presentation Layer, Use_case Layer, Data Access Layer, Domain Layer
 
-![Overview Architecture](imgs/overview_architecture.png)
+![Image](https://github.com/user-attachments/assets/251b06ac-7f4b-4620-9316-09f377cfc67f)
 
-Kiến trúc này vẫn có thể mở rộng dễ dàng, có thể thêm các server khác như server chứa dữ liệu, server chứa ảnh, server chứa video, server chứa thông tin người dùng, ...
+Kiến trúc này vẫn có thể mở rộng dễ dàng hơn so với monolith truyền thống, nhưng "có thể" sẽ không đạt được tính mở rộng bằng service_based architecture , có thể thêm các server khác như server chứa dữ liệu, server chứa ảnh, server chứa video, server chứa thông tin người dùng, ...
 muốn mở rộng thêm tính năng mới dùng chung có thể thêm một layer mới hoặc một use-case business ở tầng Business Layer.
 
 ### 1.2. Chi tiết kiến trúc
 
 #### 1.2.1. Domain Layer
 
-Domain Layer [Entities] chứa các class đại diện cho các đối tượng trong ứng dụng, các class này giống như các bảng 
-trong cơ sở dữ liệu (package entities)
+Domain Layer - package [Entities] chứa các class đại diện cho các đối tượng trong ứng dụng, các class này giống như các bảng 
+trong cơ sở dữ liệu
 
-Package [Repositories_Interface] chứa các interface đại diện cho các repository, các repository này sẽ thực hiện các thao tác với cơ sở dữ liệu
+Domain Layer - package [Repositories_Interface] chứa các interface đại diện cho các repository, các repository này định nghĩa các method và class để thao tác trên database
 
 ### Entities
 - **User**: Đại diện cho người dùng.
@@ -141,15 +141,43 @@ Package [Repositories_Interface] chứa các interface đại diện cho các re
 - **IBlockRepository**: Quản lý thao tác với bảng `blocks`.
   - `block_user(blocker_id: int, blocked_id: int) -> Block`: Chặn người dùng.
 
-![Domain Layer](imgs/domain_layer.png)
+![Image](https://github.com/user-attachments/assets/112382b0-4496-48c5-974e-622c0ea5dd4f)
 
 #### 1.2.2. Data Access Layer
 
-Data Access Layer chịu trách nhiệm thao tác trực tiếp với cơ sở dữ liệu, triển khai các repository interfaces từ Domain Layer.
+Data Access Layer chịu trách nhiệm thao tác trực tiếp với cơ sở dữ liệu chính, triển khai các repository interfaces từ Domain Layer.
+Quản lý transaction, kết nối với database
 
 ### Data Access Layer
 - **Repositories**: Triển khai các repository interfaces.
 - **UnitOfWork**: Quản lý transaction và commit dữ liệu.
 - **Database Context**: Kết nối và tương tác với cơ sở dữ liệu (ví dụ: SQLAlchemy).
 
-![Data Access Layer](imgs/data_access_layer.png)
+![Image](https://github.com/user-attachments/assets/92fa1e17-efbf-4b18-a60e-d99c6d20b62f)
+
+#### 1.2.3 Use case Layer
+
+Use case Layer chịu trách nhiệm quản lý các class service để xử lý logic nghiệp vụ chính cho toàn bộ ứng dụng, các class này 
+sử dụng UnitOfWork là một Adapter của các Interface để thực hiện việc đọc/ghi dữ liệu. Tầng trình diễn sẽ sử dụng các class này để phục vụ logic nghiệp vụ
+
+### Use case Layer
+
+- **Services**: 
+
+![Image](https://github.com/user-attachments/assets/b2135db6-6838-4ef8-bfad-49bb71f73735)
+
+#### 1.2.4 Application Layer
+
+Tầng trình diễn dữ liệu
+
+### Application Layer
+
+- **Controllers**: deserialization & serialization json request & response, gợi tới các service 
+- **Routing**: quản lý tập trung (điều hướng, tạo và đăng ký endpoint) các endpoint, gom nhóm và áp dụng các middleware theo pattern : global -> group -> routes
+- **Middlewares**: các đoạn code ( phần mềm ) trung gian giữa các request và response tùy theo mục đích sử dụng : 
+ghi log, xác thực, kiểm soát lượng truy cập (rate limiting), ...
+- **Log**: class ghi log cho toàn bộ server 
+- **DTOs**: package chứa các đối tượng chuyển đổi dữ liệu giữa data từ client đến server và ngược lại
+- **Containers**: quản lý khởi tạo đối tượng (dependency injection) cho toàn bộ các class của hệ thống 
+
+![Image](https://github.com/user-attachments/assets/bbd35f2f-877e-45a6-ba36-f3a0cfe8180a)

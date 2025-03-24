@@ -5,6 +5,8 @@ object User {
   email: string
   passwordHash: string
   isActive: boolean
+  isBanned: boolean
+  role: enum
   createdAt: Date
   updatedAt: Date
 }
