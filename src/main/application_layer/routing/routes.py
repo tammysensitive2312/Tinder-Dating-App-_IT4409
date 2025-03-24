@@ -2,11 +2,13 @@ from main.application_layer.routing.router import Router
 from main.application_layer.container import InfrastructureContainer
 
 
-auth_middleware = InfrastructureContainer.auth_middleware()
 
 def setup_router(app, container):
     router = Router()
     router.middlewares = []
+
+    logging_middleware = InfrastructureContainer.logging_middleware(app=app)
+    auth_middleware = InfrastructureContainer.auth_middleware()
 
     global_group = router.group('/api/v1')
 

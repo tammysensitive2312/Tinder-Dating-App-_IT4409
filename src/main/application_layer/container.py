@@ -42,10 +42,14 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         db_context=db_context
     )
 
-    logging_middleware = providers.Singleton(LoggingMiddleware)
+    logging_middleware = providers.Singleton(
+        LoggingMiddleware,
+        app=providers.Object(None),
+        logger=logger
+    )
     auth_middleware = providers.Factory(
         AuthMiddleware,
-        uow
+        uow=uow
     )
 
 class ServiceContainer(containers.DeclarativeContainer):

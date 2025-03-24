@@ -13,9 +13,9 @@ class Middleware(ABC):
     pass
 
 class LoggingMiddleware(Middleware):
-    def __init__(self, app):
+    def __init__(self, app, logger):
         self.app = app
-        self.logger = PyLogger()
+        self.logger = logger
         self.register_middleware()
 
     def register_middleware(self):
@@ -28,7 +28,9 @@ class LoggingMiddleware(Middleware):
             try:
                 end_time = time()
                 duration = end_time - g.start_time
-                token = request.headers.get('Authorization', 'No token')[:8]  # Chỉ ghi 8 ký tự đầu
+                auth_header = request.headers.get('Authorization', '')
+                token = auth_header.replace('Bearer ', '')[:8]
+
                 uri = request.path
                 status_code = response.status_code
                 log_message = f"URI: {uri}, Token: {token}, Status: {status_code}, Time: {duration:.4f}s"
@@ -41,7 +43,6 @@ class LoggingMiddleware(Middleware):
 class AuthMiddleware(Middleware):
     def __init__(self, uow):
         self.uow = uow
-        self.logger = PyLogger()
 
     def __call__(self, func):
         @wraps(func)
