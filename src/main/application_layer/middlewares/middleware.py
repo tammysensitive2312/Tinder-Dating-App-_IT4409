@@ -1,4 +1,5 @@
 from abc import ABC
+from functools import wraps
 from time import time
 
 from flask import request, g, jsonify
@@ -38,25 +39,23 @@ class LoggingMiddleware(Middleware):
 
 
 class AuthMiddleware(Middleware):
-    def __init__(self, app, uow):
-        self.app = app
+    def __init__(self, uow):
         self.uow = uow
         self.logger = PyLogger()
-        self.register_middleware()
 
-    def register_middleware(self):
-        NO_AUTH_ROUTES = ['/api/v1/register', '/api/v1/login']
-
-        @self.app.before_request
-        def check_auth():
-            if request.path in NO_AUTH_ROUTES:
-                return
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
             token = request.headers.get('Authorization')
             if not token:
                 return jsonify({"error": "No token provided"}), 401
+
             success, message = self.validate_token(token)
             if not success:
                 return jsonify({"error": message}), 401
+
+            return func(*args, **kwargs)
+        return wrapper
 
     def validate_token(self, token):
         if not token or not token.startswith("Bearer "):
@@ -68,14 +67,13 @@ class AuthMiddleware(Middleware):
             decoded_token = decode_token(token)
             user_id = decoded_token["sub"]["user_id"]
 
-            user = self.uow.users.get_by_id(user_id)
-            if not user:
-                return False, "User not found"
-
-            if not user.isActive:
-                return False, "User account is disabled"
-
-            return True, decoded_token
+            with self.uow.start() as uow :
+                user = self.uow.users.get_by_id(user_id)
+                if not user:
+                    return False, "User not found"
+                if not user.isActive:
+                    return False, "User account is disabled"
+                return True, decoded_token
 
         except ExpiredSignatureError:
             return False, "Token has expired"

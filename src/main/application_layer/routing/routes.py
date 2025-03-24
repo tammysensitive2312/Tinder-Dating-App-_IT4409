@@ -1,6 +1,8 @@
 from main.application_layer.routing.router import Router
-from main.application_layer.pylog import PyLogger as log
+from main.application_layer.container import InfrastructureContainer
 
+
+auth_middleware = InfrastructureContainer.auth_middleware()
 
 def setup_router(app, container):
     router = Router()
@@ -15,7 +17,9 @@ def setup_router(app, container):
     not_auth_group.post('/reset-password', container.controllers.auth_controller().reset_password)
     not_auth_group.put('/reset-password', container.controllers.auth_controller().confirm_reset_password)
     '''api này cần auth'''
-    not_auth_group.post('/change-password', container.controllers.auth_controller().change_password)
+    not_auth_group.post('/change-password',
+                        container.controllers.auth_controller().change_password,
+                        [auth_middleware])
 
     for bp in router.generate_routes():
         app.register_blueprint(bp)
